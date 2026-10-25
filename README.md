@@ -112,6 +112,30 @@ yaya.dll を更新して
 
 ビルドした tamacs.exe と、SSP の場所の設定（`local.json`）は、スキルの更新で消えないよう、ホームフォルダ（`%LOCALAPPDATA%\ukagaka-developer`。環境変数 `UKADEV_HOME` で変えられます）に置かれます。
 
+## 許可の確認を減らす
+
+Claude Code は、スクリプトを実行するたびに許可を確認します。このスキルは、読み取り専用のスクリプト（`doctor`、`check`、`check-dic`、`check-shell`、`lint`、`shiori`、`dump-surface`、`ssp-log`、`image info` / `image view`）を、`SKILL.md` の `allowed-tools` で許可していますが、**許可されるのは、スキルを使っているターンの間だけ**です（次のメッセージで切れます）。毎回の確認が煩わしいときは、次のどちらかを使います。
+
+- Claude Code に `/fewer-permission-prompts` を実行させる（よく使う読み取りだけのコマンドを、`.claude/settings.json` の許可リストに足してくれます）。
+- `.claude/settings.json`（そのゴーストだけ）か `~/.claude/settings.json`（すべて）の `permissions.allow` に、規則を足す。プラグインのフォルダはバージョンごとに変わるので、`*` でパスを受けます。
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File *ukagaka-developer*scripts/doctor.ps1*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File *ukagaka-developer*scripts/check.ps1*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File *ukagaka-developer*scripts/check-dic.ps1*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File *ukagaka-developer*scripts/check-shell.ps1*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File *ukagaka-developer*scripts/shiori.ps1*)",
+      "PowerShell(powershell -NoProfile -ExecutionPolicy Bypass -File *ukagaka-developer*scripts/check-dic.ps1*)"
+    ]
+  }
+}
+```
+
+`shiori.ps1` は、辞書の関数やトークを実際に実行します。ファイルの書き込み、外部プログラムの実行、SAORI の呼び出しをするものは、本当に動くので、許可に加えるかは、そのつもりで決めてください。旧 AI 開発キットは、`.claude/settings.json` で `tools/*.ps1` を許可していました。移行（下）でその許可は消えるので、必要ならここで足し直します。
+
 ## 更新
 
 | 入れ方 | 更新 |
@@ -137,6 +161,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <スキルのフォルダ>\s
 - 旧キットが入れたまま変えていないファイルだけを消します。作者が変えたファイルは残して知らせます。
 - 消す・書き換えるファイルは、先にゴーストの外（`%LOCALAPPDATA%\ukagaka-developer\backups\`）に退避します。git の無い（nar をインストールした）フォルダでも戻せます。
 - `GHOST.md`、辞書、シェルには触りません。
+- 旧キットの `.claude/settings.json` が許可していた `tools/*.ps1` の実行は、なくなります（上の「許可の確認を減らす」）。
 - 詳しくは `skills/ukagaka-developer/references/workflows/migrate-from-devkit.md`。
 
 ## 里々で発展的な処理をするとき

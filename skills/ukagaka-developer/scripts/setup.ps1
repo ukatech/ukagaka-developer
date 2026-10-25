@@ -131,7 +131,7 @@ Write-Host ''
 Write-Host '==== environment (scripts/doctor.ps1) ===='
 $powershell = (Get-Process -Id $PID).Path
 $ErrorActionPreference = 'Continue'
-& $powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'doctor.ps1')
+& $powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'doctor.ps1') -GhostRoot $DevkitRoot
 $doctorCode = $LASTEXITCODE
 
 if ($failed -gt 0 -or $doctorCode -ne 0) { exit 1 }

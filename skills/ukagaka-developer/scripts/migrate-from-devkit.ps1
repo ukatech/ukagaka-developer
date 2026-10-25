@@ -120,6 +120,12 @@ if (Test-Path -LiteralPath $workflowDir -PathType Container) {
     }
 }
 $leftovers = @(Get-DevkitConflictFiles $root)
+# receiver.bat / receiver.ps1 of the SATORI sample ghost open the log window of the old kit's tools/lib.
+$staleReceivers = New-Object System.Collections.Generic.List[string]
+foreach ($name in @('receiver.ps1', 'receiver.bat')) {
+    $receiver = Join-Path $root "ghost/master/$name"
+    if ((Test-Path -LiteralPath $receiver -PathType Leaf) -and ([IO.File]::ReadAllText($receiver, $DevkitUtf8) -match 'tools[\/]lib')) { $staleReceivers.Add("ghost/master/$name") }
+}
 $narignorePath = Join-Path $root '.narignore'
 $narignoreChange = $false
 if (Test-Path -LiteralPath $narignorePath -PathType Leaf) {
@@ -151,12 +157,13 @@ if ($hasLocalJson) { Write-Host "tools/local.json: the SSP path is copied to loc
 $kept = @($plan | Where-Object { $_.Action -eq 'keep' })
 Write-Group 'kept by hand (merge or delete them yourself)' $kept { param($i) "$($i.Path)  - $($i.Note)" }
 Write-Group 'workflows that still call tools/*.ps1 or build the old kit (not changed; see references/workflows/ci.md)' @($staleWorkflows) { param($i) $i }
+Write-Group 'log receiver files that need the old kit (not changed; use scripts/log-window.ps1 instead)' @($staleReceivers) { param($i) $i }
 Write-Group 'leftover files of old kit updates (not changed)' @($leftovers) { param($i) $i }
 Write-Host ''
 
 if (-not $Apply) {
     Write-Host 'migrate-from-devkit: dry run, nothing was changed. Run again with -Apply to do it (a backup is written first).'
-    if ($kept.Count -gt 0 -or $staleWorkflows.Count -gt 0 -or $leftovers.Count -gt 0) { exit 2 }
+    if ($kept.Count -gt 0 -or $staleWorkflows.Count -gt 0 -or $staleReceivers.Count -gt 0 -or $leftovers.Count -gt 0) { exit 2 }
     exit 0
 }
 
@@ -310,7 +317,11 @@ foreach ($folder in @('tools/lib', 'tools/hooks', 'tools/devkit/seed', 'tools/de
 $report.Add('')
 foreach ($item in $kept) { $report.Add("KEPT      $($item.Path)  - $($item.Note)"); $manual++ }
 foreach ($path in $staleWorkflows) { $report.Add("STALE     $path  - calls tools/*.ps1 or builds the old kit (references/workflows/ci.md)"); $manual++ }
+foreach ($path in $staleReceivers) { $report.Add("STALE     $path  - opens the log window of the old kit; delete receiver.ps1, receiver.bat and receiver.txt, and use scripts/log-window.ps1"); $manual++ }
 foreach ($path in $leftovers) { $report.Add("LEFTOVER  $path"); $manual++ }
+if (@($plan | Where-Object { $_.Action -in @('settings', 'delete') -and $_.Path -eq $settingsPath }).Count -gt 0) {
+    $report.Add('NOTE      the permissions that .claude/settings.json gave to tools/*.ps1 are gone. The skill allows its read-only scripts only for the turn that uses it; see the section about permission prompts in README.md to allow them for good.')
+}
 $reportPath = Join-Path $backupDir 'migration-report.txt'
 [IO.File]::WriteAllText($reportPath, (($report -join "`n") + "`n"), $DevkitUtf8)
 

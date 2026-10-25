@@ -43,7 +43,7 @@ tests/check-repo.ps1                            リポジトリの検査（CI �
 - 冒頭で `. (Join-Path $PSScriptRoot 'lib/common.ps1')`（`shiori/<id>/` では `'../../lib/common.ps1'`）を読み、`Initialize-DevkitConsole` を呼ぶ。パスは `$DevkitRoot` から組み立て、`ghost/master` と `shell/master` を前提にしてよい。
 - 終了コードをそろえる: 0 OK / 1 失敗・エラー / 2 注意が要る（SSP のエラーログの Error、手作業が残る、など）/ 3 ツールや SSP が無くて確かめられない。
 - 冒頭のコメントヘルプ（`.SYNOPSIS`、`.DESCRIPTION`、終了コード、`.EXAMPLE`）を書き、`references/commands.md`（と、SHIORI のコマンド表）も直す。
-- 使い方の例は `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/<名前>.ps1` の形にそろえる。`SKILL.md` の `allowed-tools` は、この形で許可している（読み取り専用のスクリプトだけ。`run-ssp`、`sstp`、`build-nar`、`update-*`、`migrate-*`、`init-ghost` は、作者の PC に影響するので許可しない）。
+- 使い方の例は `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/<名前>.ps1` の形にそろえる。`SKILL.md` の `allowed-tools` は、この形で許可している（Claude Code の仕様では、許可はスキルを読み込んだターンの間だけで、次のメッセージで切れる。また、パスの置き換えは `Bash(...)` の規則に書かれていて、`PowerShell(...)` の規則に効くかは確かめていない。なので、文書に「確認が出ない」とは書かない。読み取り専用のスクリプトだけ。`run-ssp`、`sstp`、`build-nar`、`update-*`、`migrate-*`、`init-ghost` は、作者の PC に影響するので許可しない）。
 - スクリプトを足したら、`SKILL.md` の表、`references/commands.md`、必要なら `allowed-tools` を直す。
 
 ## 新しい SHIORI を足す

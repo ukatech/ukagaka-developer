@@ -89,7 +89,7 @@ function Set-UpdateExitCode([int]$Code) {
 function Invoke-DictionaryCheck {
     $powershell = (Get-Process -Id $PID).Path
     $ErrorActionPreference = 'Continue'
-    & $powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-dic.ps1') -GhostDir $GhostDir | Out-Host
+    & $powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-dic.ps1') -GhostDir $GhostDir -GhostRoot $DevkitRoot | Out-Host
     return $LASTEXITCODE
 }
 

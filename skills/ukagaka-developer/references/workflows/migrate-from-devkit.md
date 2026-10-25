@@ -22,6 +22,7 @@ konnoyayame（YAYA）と POST_and_KOMAINU（里々）の「AI 開発キット」
 | `tools/local.json` | SSP のパスを、ホームフォルダの `local.json` に写す |
 | 作者が変えたキットのファイル、`tools/` の中の作者のスクリプト | **残して知らせる**（`KEPT`） |
 | `.github/workflows/` の、`tools/*.ps1` を呼ぶほかのワークフロー（`auto_release.yml` など）、キット付きの nar を作る `auto_release_devkit.yaml` | **変えず、知らせる**（`STALE`） |
+| 里々のサンプルゴーストの `ghost/master/receiver.bat` / `receiver.ps1`（旧キットの `tools/lib` でログ受信ウインドウを開く） | 変えず、知らせる（`STALE`）。消して、`scripts/log-window.ps1` を使う |
 | `*.devkit-new`、`*.yaya-dic-new` | 変えず、知らせる（`LEFTOVER`） |
 | `GHOST.md`、辞書、シェル、`README.md` | 一切触らない |
 
@@ -29,6 +30,7 @@ konnoyayame（YAYA）と POST_and_KOMAINU（里々）の「AI 開発キット」
 
 ## 手順
 
+0. **先にこのスキルを使える状態にしておく**（この手順書もスクリプトも、スキルの一部）。Claude Code: `claude plugin marketplace add ukatech/ukagaka-developer` のあと `claude plugin install ukagaka-developer --scope project`（そのゴーストだけ）か `--scope user`。入れたら Claude Code を終了して開き直す。Codex、Antigravity など: スキルのフォルダ（`skills/ukagaka-developer/`）を `.agents/skills/ukagaka-developer/` にコピーする（`README.md`）。コピーした場所は、`.narignore` の開発用ブロック（手順 3 が書く）が nar から除外する。
 1. 作者に何が起こるかを伝え、了承を得る。作業の前に、git の作業コピーなら未コミットの変更がないか確かめる（あれば、先にコミットか退避を勧める）。
 2. 計画を見る（何も変更しない）: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/migrate-from-devkit.ps1`
    - `delete`、`replace with a short stub`、`edit`、`kept by hand`、`workflows that still call tools/*.ps1` に分かれて出る。作者に要点を伝える。
@@ -41,9 +43,7 @@ konnoyayame（YAYA）と POST_and_KOMAINU（里々）の「AI 開発キット」
    - **`tools/` の中の作者のスクリプト**: そのまま残してよい。旧キットの `tools/lib/common.ps1` を読み込んでいるものは動かなくなるので、作者と相談する。
    - **ワークフロー（`STALE`）**: `references/workflows/ci.md`。旧キットの `tools/build-nar.ps1` を呼んでいたリリースのワークフローを、スキルのスクリプトに替える。`auto_release_devkit.yaml`（キットあり版の nar）は、キットが無くなるので消す。
    - **`*.devkit-new`**: 旧キットの更新でできた、マージ待ちの新しい版。旧キットは外すので、要るところだけ手元のファイルに取り込んで、消す。
-5. スキルを使える状態にする。
-   - Claude Code: `claude plugin marketplace add ukatech/ukagaka-developer` のあと `claude plugin install ukagaka-developer --scope project`（そのゴーストだけ）か `--scope user`。入れたら Claude Code を終了して開き直す。
-   - Codex、Antigravity など: スキルのフォルダ（`skills/ukagaka-developer/`）を `.agents/skills/ukagaka-developer/` にコピーする（`README.md`）。コピーした場所は `.narignore` の開発用ブロックが nar から除外する。
+5. 旧キットの `.claude/settings.json` が許可していた `tools/*.ps1` の実行は、なくなる。スキルが許可するのは、読み取り専用のスクリプトを、スキルを使っているターンの間だけ。ずっと許可するには、`README.md` の「許可の確認を減らす」を作者に案内する。
 6. 確かめる。
    - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/doctor.ps1`: `old development kit` が ok になり、`required` がそろっている。
    - `scripts/check.ps1`: 移行の前と同じ結果になる。

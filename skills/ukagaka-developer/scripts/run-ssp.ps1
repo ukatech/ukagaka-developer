@@ -39,8 +39,7 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/common.ps1')
 . (Join-Path $PSScriptRoot 'lib/sstp.ps1')
-# -Stop closes the SSP that is recorded in the session file, wherever the script is run from.
-if ($Stop) { Initialize-DevkitConsole -NoGhost } else { Initialize-DevkitConsole }
+Initialize-DevkitConsole
 
 if ($Stop) {
     $session = Get-DevkitSspSession

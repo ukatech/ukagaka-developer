@@ -38,4 +38,4 @@ yaya.dll と satori.dll を SSP なしで読み込むツール（SHIORI の dll 
 - `?? コード` には、yaya-dic の `shiori3.dic`（`AyaTest.Eval`）が `!! 結果` で答える。行ごとに `EVAL` して結果をつなげ、配列は `,` で JOIN する。ローカル変数は次の行に残らない。`EVAL` に失敗すると結果はコードそのものになり、E0071 などが `shiori3.dic` の行で記録される。
 - システム辞書は、リクエストの `Charset` で `charset.output` を切り替える（`SETSETTING`）。`-Event` は `yaya.txt` の `charset.output` を送り、UTF-8 を決め打ちしない。`Sender` は `basewarename` になり、テンプレートは `SSP` かどうかで分岐するので、`SSP` を送る。
 - YAYA は解放のときに `yaya_variable.cfg` を保存するので、`Invoke-DevkitTamacs` が前後で退避して戻す（`check-dic.ps1` も同じ）。
-- `SKILL.md` の `allowed-tools` に入れている。`-Eval` は任意の YAYA のコード（`EXECUTE`、`FWRITE` など）を実行できるが、辞書の関数を試すたびに確認が出ると使われなくなるため、使いやすさを優先した。ファイルの書き込みや外部プログラムの実行をする関数は中身を読んでから呼ぶことを、`SKILL.md` と `references/workflows/check.md` に書いている。
+- `SKILL.md` の `allowed-tools` に入れている（スキルを使っているターンの間だけ有効）。`-Eval` は任意の YAYA のコード（`EXECUTE`、`FWRITE` など）を実行できるが、辞書の関数を試すたびに確認が出ると使われなくなるため、使いやすさを優先した。ファイルの書き込みや外部プログラムの実行をする関数は中身を読んでから呼ぶことを、`SKILL.md` と `references/workflows/check.md` に書いている。

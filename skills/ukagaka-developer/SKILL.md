@@ -74,6 +74,7 @@ templates/     ゴーストに足す入門用ファイル（GHOST.md など）�
 | 「SHIORI を最新にして」 | `references/workflows/update-shiori.md` |
 | 「自分のゴーストを作りたい」「テンプレート（サンプル）から独立させたい」 | `references/workflows/new-ghost.md` |
 | 「旧キットを外して」「tools フォルダを片付けたい」「開発キットからスキルに移したい」 | `references/workflows/migrate-from-devkit.md` |
+| 「里々のログを見たい」「ログ受信ウインドウを開いて」 | `references/commands.md`（`scripts/log-window.ps1`） |
 | 「スキルを更新して」「ukagaka-developer を最新にして」 | `references/workflows/update-skill.md` |
 
 ## 作業のルール
