@@ -1,0 +1,12 @@
+
+# files for developing the ghost with ukagaka-developer (not shipped in the nar or in network updates)
+/AGENTS.md
+/CLAUDE.md
+/GHOST.md
+/.mcp.json
+/.claude/
+/.agents/
+/build/
+
+# balloon images of sstp.ps1 -Balloon, left only when the script was stopped midway
+/ghost/master/devkit-balloon-*/

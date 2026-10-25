@@ -1,0 +1,43 @@
+{
+  "_comment": "SATORI-specific text used by scripts/shiori/satori/lib.ps1. UTF-8 on purpose: the .ps1 files are ASCII only, so the Japanese strings live here.",
+  "debugLines": [
+    "＄デバッグ＝有効"
+  ],
+  "plainLines": [
+    "＄自動挿入ウェイトタイプ＝無効",
+    "＄自動改行挿入＝無効"
+  ],
+  "initSentence": "＊初期化",
+  "flushMarkArtifact": "1057598",
+  "flushMarkNote": "Mc201-5 (built with VC6) prints the end-of-message mark of satori::endl as the digits 1057598 and never flushes it, so SATORI's [ERROR] messages reach tamac late, glued together by these digits. They are split apart again.",
+  "patterns": [
+    { "level": "error", "regex": "^SAORI読み込み中にエラーが発生", "hint": "a line of ＠SAORI in satori_conf.txt is wrong or its file is missing" },
+    { "level": "error", "regex": "^SakuraDLLClient::load '.*' \\.\\.\\.failed\\.", "hint": "a SAORI dll could not be loaded" },
+    { "level": "error", "regex": "^\\s*loading (?!satori_conf\\.|satori_save)\\S.*\\.\\.\\. failed\\.", "hint": "a dictionary file could not be read" },
+    { "level": "warning", "regex": "^\\s*loading satori_conf\\.\\S+\\.\\.\\. failed\\.", "hint": "satori_conf.txt was not found, so ＊初期化 and ＠SAORI are not read" },
+    { "level": "error", "regex": "カッコの対応関係が正しくない部分があります", "hint": "an unclosed （ in a dictionary; write φ（ for a literal one" },
+    { "level": "error", "regex": "^\\s*（[^（）]*[、,，､][^（）]*） not found\\.", "hint": "a call with arguments to a name that does not exist: a misspelled function, or a SAORI missing from ＠SAORI" },
+    { "level": "warning", "regex": "^\\s*（.*） not found\\.", "hint": "no word group, sentence, variable or function has that name (a variable that was never set is reported too, and stays in the text as written)" },
+    { "level": "note", "regex": "^\\s*[＞≧≫].* not found\\.", "hint": "the jump target sentence does not exist; SATORI goes on with the next line, which dictionaries often rely on" },
+    { "level": "error", "regex": "呼び出し回数超過", "hint": "（） nested too deeply, usually a circular call" },
+    { "level": "error", "regex": "ジャンプ回数超過", "hint": "too many jumps, usually a loop" },
+    { "level": "error", "regex": "括弧展開サイズ超過", "hint": "an expansion result is too long" },
+    { "level": "error", "regex": "→(?:'[^']*' )?式が計算不能です", "hint": "check parentheses, operators and division by 0" },
+    { "level": "error", "regex": "計算式が異常なので", "hint": "the condition of a jump could not be calculated" },
+    { "level": "error", "regex": "※　＄による変数代入文には.*?　※", "extract": true, "hint": "a ＄ line needs a tab or ＝ between the name and the value" },
+    { "level": "error", "regex": "数字のみの変数名は扱えません", "hint": "a variable name cannot be only digits" },
+    { "level": "error", "regex": "選択肢記法(の後に文字列が存在しない|が長すぎる)", "hint": "a ＿ choice line is empty or too long" },
+    { "level": "error", "regex": "トーク予約、設定値がヘンです", "hint": "the N of ＄次からN回目のトーク must be 1 or more" },
+    { "level": "error", "regex": "重複回避(制御の方法|の期間)'.*' は定義されていません", "hint": "misspelled overlap avoidance setting" },
+    { "level": "error", "regex": "^\\s*'.*' は存在しません。", "hint": "the target of an overlap avoidance setting does not exist (set too early?)" },
+    { "level": "error", "regex": "^\\s*error: '.*' : 引数が不正です", "hint": "wrong arguments for a built-in function" },
+    { "level": "error", "regex": "→引数(の個数)?が(正しくありません|足りません)", "hint": "wrong number of arguments" },
+    { "level": "error", "regex": "→命令が指定されていません", "hint": "ssu was called without a function name" },
+    { "level": "error", "regex": "→Error: '.*'という名前の命令は定義されていません", "hint": "no such ssu function" },
+    { "level": "error", "regex": "(?:^\\s*|→)split_to: 接頭辞", "hint": "unusable prefix for split_to" },
+    { "level": "error", "regex": "(?:^\\s*|→)forの増分に0が指定されました", "hint": "the step of for is 0" },
+    { "level": "warning", "regex": "同じ名前「.*」の単語群と文があります", "hint": "a word group and a sentence have the same name" },
+    { "level": "warning", "regex": "変数「.*」と同じ名前の(単語群|文)があります", "hint": "a variable and a word group/sentence have the same name" },
+    { "level": "warning", "regex": "local/Localでないので蹴りました", "hint": "a local-only function was called from an external request" }
+  ]
+}

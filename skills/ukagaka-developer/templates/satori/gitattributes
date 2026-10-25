@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+*.dll binary
+*.exe binary
+*.png binary
+*.ico binary
+*.pnr binary
+*.nar binary
+*.dau binary
+*.zip binary
+# encrypted dictionaries and save data of SATORI
+*.sat binary

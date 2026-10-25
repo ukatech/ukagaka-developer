@@ -1,0 +1,11 @@
+{
+  "name": "ukagaka-developer",
+  "description": "伺か（ukagaka）のゴーストを、AI と一緒に作る・直す・動かして確かめる・配布する。SHIORI は YAYA と里々（SATORI）。辞書の書き方、チェック、SSP での動作確認、シェル画像の編集、nar の作成、SHIORI の更新のためのスキルと、仕様調査のサブエージェント、仕様検索 MCP が入っている。",
+  "author": {
+    "name": "ukatech"
+  },
+  "homepage": "https://github.com/ukatech/ukagaka-developer",
+  "repository": "https://github.com/ukatech/ukagaka-developer",
+  "license": "Unlicense",
+  "keywords": ["ukagaka", "ghost", "yaya", "satori", "ssp"]
+}

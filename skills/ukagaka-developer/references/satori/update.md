@@ -1,0 +1,56 @@
+# 里々（satori.dll）の更新
+
+## 使うとき
+
+作者が「里々を更新して」「里々を新しくして」「satori.dll を更新して」「SHIORI を最新に」「里々のバージョンを教えて」と言ったとき。
+
+**作者にはっきり頼まれたときだけ行う（バージョンを聞かれただけなら、`-DryRun` で確認して答える）。自分から始めない。** GitHub からのダウンロードと、`satori.dll` などのファイルの置き換えを伴う。
+
+## 里々のバージョンと 2 つの系統
+
+- バージョン記号は `McXYY-Z`（例: `Mc201-5`）。`X` が 1 なら **ACP 版**（`Mc1XX`。システムのコードページで辞書を読む古い系統）、2 なら **Unicode 版**（`Mc2XX`。内部を Unicode で扱い、UTF-8 の辞書を読める）。機能を足すと `YY` が上がり、バグ修正で `Z` が上がる。
+- 配布は [ukatech/satoriya-shiori](https://github.com/ukatech/satoriya-shiori/releases) のリリースで、`satori.zip` に `satori.dll`、`satorite.exe`、`saori\ssu.dll` が入っている。Unicode 版（`Mc2XX`）は当面プレリリースとして公開されている。
+- 版は DLL の中の `phase McXYY-Z` という文字列で分かる（`scripts/doctor.ps1` と `scripts/update-shiori.ps1` が表示する）。`scripts/shiori.ps1 -Event version` でも、`phase McXYY-Z` が返る。
+- 現行の `satori.dll` は ssu（同梱 SAORI）を内蔵している。`saori/ssu.dll` が無く、`satori_conf.txt` の `＠SAORI` に ssu の行が無くても、`calc` や `if` などの ssu の関数は使える。古いゴーストには `saori/ssu.dll` が残っていることがある。
+- 仕様は https://ukatech.shillest.net/satori-docs/ 。Unicode 版と ACP 版の違いは `other/unicode-changes`、リリースごとの修正は同じページにある。
+
+## scripts/update-shiori.ps1 がすること（里々）
+
+- `satori.zip` を、リリースから取る（または `-Tag` で指定した版）。ダウンロードは GitHub が公開している SHA256 と照合する。
+- どのリリースを取るか: **手元の `satori.dll` と同じ系統**（`Mc2XX` なら Unicode 版、`Mc1XX` なら ACP 版）で、いちばん新しい版。プレリリースも対象にする（`-StableOnly` で除く）。`satori.dll` が無いときは Unicode 版。`-Variant Unicode` / `-Variant Acp` で系統を切り替える。
+- 置き換えるファイル: **ゴーストにあるものだけ**。`satori.dll`、`satorite.exe`、`saori/ssu.dll`（無ければ足さない）。`satori.dll` が無いゴーストに入れるときだけ `-Force` が要る。
+- 更新前後の版（`current` / `new`、各ファイルの `Mc201-5 -> Mc201-5`）を表示する。手元より古いリリースは、`-Tag`、`-Variant`、`-Force` のどれかを付けないかぎり入れない。
+- 置き換えたあとに `scripts/check-dic.ps1` を実行する。失敗したら、置き換えたファイルを元に戻す。
+- 終了コード: 0 更新した・最新だった・確認のみ / 1 失敗。
+
+## 手順
+
+1. 確認だけを行う（GitHub からダウンロードすることを一言伝える。作者が版を指定したときだけ `-Tag <タグ>` を付ける。系統の切り替えを望んだときだけ `-Variant` を付ける）:
+   `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/update-shiori.ps1 -DryRun`
+   次を短くまとめて伝える。
+   - 今の版（`current`）と更新先（`release`、`new`）。`(pre-release)` と出たら、プレリリースであること。
+   - 各ファイルの動作（`same` / `replace`）。
+   - `-Variant` で系統を変えるとき: `this switches from the … build` の注意が出る（下の「系統を切り替えるとき」）。
+2. `already up to date` なら、そのことを伝えて終わる。
+3. SSP でこのゴーストを起動していると、`satori.dll` が使用中で置き換えられない。ゴーストを終了してもらう。
+4. 了承を得てから、`-DryRun` を外して実行する。
+5. 変わったことを伝える。
+   - 出力の `notes` のリリースノートと、`satori-docs` の `other/unicode-changes`（`McXYY-Z での修正`）を読み、挙動が変わる修正があれば要約する。プレリリース（Unicode 版）を入れたときは、そのことも伝える。
+6. 確かめる。
+   - `scripts/check-dic.ps1 -Run` は、名前が単純な文を全部実行するので、版が上がって展開の挙動が変わっていないかを見つけやすい。
+   - `scripts/shiori.ps1 -Event OnBoot` と `-Event OnTalk` が応答を返すこと。
+   - 作者が SSP で試したいと言えば、`references/workflows/try-in-ssp.md` の手順で起動する。
+7. git の作業コピーなら、変更をコミットするか聞く（勝手にコミットしない）。`satori.dll` などのバイナリなので、コミットメッセージにバージョン（`satori.dll を Mc201-5 に更新` など）を書くと後で追える。
+8. ネットワーク更新で配布しているゴーストなら、`scripts/build-nar.ps1 -UpdateOnly` で更新ファイルを作り直すことを提案する（`references/workflows/build-nar.md`）。
+
+## 系統を切り替えるとき（ACP 版 ↔ Unicode 版）
+
+- Unicode 版は、辞書・`replace.txt`・セーブデータを、UTF-8（BOM の有無を問わない）か Shift_JIS のどちらでも読み、セーブデータは常に UTF-8 で書く。ACP 版は、システムのコードページ（日本語 Windows なら Shift_JIS）で読み書きする。一度 Unicode 版で保存したセーブデータを ACP 版に戻すと、文字化けする可能性がある。
+- このゴーストの `descript.txt` が `charset,UTF-8` なら、Unicode 版が前提（`scripts/doctor.ps1` の `SATORI build` がそれを見ている）。ACP 版へ戻すことを頼まれたら、辞書と `descript.txt` の文字コードも Shift_JIS に戻す必要があることを、先に伝える。
+- 文字数とバイト数の扱いなど、動作の違いは `satori-docs` の `other/unicode-changes` にまとまっている。
+
+## 関連
+
+- コマンドと終了コードの一覧: `references/commands.md`
+- 辞書のチェック: `references/workflows/check.md`
+- 里々のリリース手順とバージョン記号: https://github.com/ukatech/satoriya-shiori （`CLAUDE.md` の「リリース」）

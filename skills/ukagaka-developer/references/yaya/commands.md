@@ -1,0 +1,10 @@
+# YAYA のコマンド
+
+YAYA のゴーストで、`check-dic` `shiori` `lint` `update-shiori` が実行する `scripts/shiori/yaya/` の使い方。共通のコマンドは `references/commands.md`。`<ps>` は `powershell -NoProfile -ExecutionPolicy Bypass -File` の略。
+
+| コマンド | 内容 | 終了コード |
+|---|---|---|
+| `<ps> scripts/check-dic.ps1` | tamacs.exe で辞書を実際に読み込み、エラーを表示する | 0 OK / 1 エラー / 3 確かめられない（tamacs.exe をビルドできない、yaya.dll が古くて `Set_loghandler` が無い） |
+| `<ps> scripts/lint.ps1` | 未定義・未使用の変数と関数、条件式の中の代入を探す（参考情報）。tamacs.exe でゴーストを読み込み、システム辞書の `SHIORI3FW.Lint.Run`（yaya-dic の `yaya_base/lint.dic`）が yaya.dll の `LINT.*` 関数で辞書を調べる。`ファイル:行: 種類 '名前' in 関数名` の形で表示し、桁は出ない。システム辞書の結果は `-IncludeSystem` のときだけ表示する。`scripts/shiori.ps1 -Eval 'SHIORI3FW.Lint.Run'` でも同じ結果を得られる | 0（`-Strict` なら未定義があると 1）/ 1 辞書の読み込みエラーなど / 3 tamacs.exe をビルドできない、yaya.dll が Tc574-1 より古い、システム辞書に `lint.dic` が無い |
+| `<ps> scripts/shiori.ps1 -Eval '関数名や式'` | SSP を使わずに、tamacs.exe でこのゴーストの yaya.dll に SHIORI リクエストを 1 回送る。`-Eval` は YAYA のコードを評価して結果を表示する（関数名なら返すトーク、組み込み関数なら実際の戻り値。システム辞書の `??` を使う）。yaya.dll が Tc574-6 / Tc602-9 以降なら、コードは関数の `{ }` の中と同じ形で書ける（`;` や改行で区切った複数の文、`if` / `foreach`。ローカル変数は次の行に持ち越す。ヒアドキュメントは Tc574-8 / Tc603-1 以降）。それより古い yaya.dll や、2026 年 10 月より前のシステム辞書では、複数行は 1 行ずつ別々に評価して結果をつなげる。`-Event <ID> -Reference '0,0,0,0,Head'` は SSP と同じ形の GET（`-Notify` で NOTIFY）、`-Request` は生のリクエスト。呼ぶたびに辞書を読み込み直し（`OnBoot` などは先に送らない）、`yaya_variable.cfg` は元に戻す | 0 / 1 失敗（辞書の読み込みエラー、エラー応答など）/ 2 処理中に YAYA がエラーを出した / 3 tamacs.exe をビルドできない、yaya.dll に `Set_loghandler` が無い |
+| `<ps> scripts/update-shiori.ps1` | yaya.dll を最新リリースに、システム辞書（yaya-dic）を最新のコミットに更新する。システム辞書は、git のチェックアウト（submodule など）なら git で切り替え、普通のファイルなら zip から置き換える（`config.dic` と `_loading_order.txt` は、手元と違えば `<ファイル>.yaya-dic-new` を横に置く）。それぞれの後で辞書チェックを行い、失敗したら元に戻す。`-DryRun` で確認のみ、yaya.dll は手元と同じ系列（500 系 / 600 系。正式版かベータ版かは問わない）の最新を取り、新しい系列は知らせるだけ、`-Series 6` などで系列を切り替え、`-Tag` で版を指定、手元より古い yaya.dll は `-Tag` / `-Series` / `-Force` が無ければ入れない、`-SkipDll` / `-SkipSystemDic` で片方だけ、`-SystemDicDir dic/system` で新しいフォルダに yaya-dic を置く | 0 / 1 失敗 / 2 システム辞書に手作業が要る（古い構成、手元の変更、`.yaya-dic-new` のマージ待ち） |

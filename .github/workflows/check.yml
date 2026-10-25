@@ -1,0 +1,19 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    name: check-repo
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: check-repo (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/check-repo.ps1
+      - name: check-repo (PowerShell 7)
+        shell: pwsh
+        run: ./tests/check-repo.ps1
