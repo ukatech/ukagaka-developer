@@ -29,7 +29,7 @@
 ```
 
 - GitHub Actions（`GITHUB_ACTIONS=true`）では、SSP が無いので、`build-nar.ps1` は自分で nar を作る（git が追跡しているファイルだけ。ネットワーク更新ファイル `updates2.dau` は作れない）。ubuntu のランナーでも動く（`pwsh`）。
-- 開発用のファイル（`GHOST.md`、`AGENTS.md`、`.claude/` など）は、`.narignore` の開発用ブロックが除外する。ブロックが無ければ `scripts/init-ghost.ps1 -NarignoreDevBlock`。
+- 開発用のファイル（`GHOST.md`、`AGENTS.md`、`.claude/` など）と、リポジトリ用のファイル（`.github/`、`.gitignore`、`.editorconfig` など）は、`.narignore` の開発用ブロックが除外する。ブロックが無ければ `scripts/init-ghost.ps1 -NarignoreDevBlock`。
 - 旧キットの「キットあり版の nar」（`auto_release_devkit.yaml`）は、スキルに移したら要らない。消す。
 
 ## 旧キットのワークフローを移す

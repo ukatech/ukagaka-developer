@@ -15,7 +15,7 @@
 
 1. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1` を通す。error が残っているうちは作らない。
 2. `scripts/build-nar.ps1 -ListOnly` で入るファイルと除外されるファイルを表示し、個人データ、ローカル設定、ビルド生成物が混ざっていないか確かめる。
-   - **開発用のファイル（`GHOST.md`、`AGENTS.md`、`CLAUDE.md`、`.mcp.json`、`.claude/`、`.agents/`、`build/`）は、nar に入れない。** `.narignore` の開発用ブロック（`# files for developing the ghost with ukagaka-developer` から始まる）が除外する。入る場合は `-ListOnly` の最後に `note: ... development file(s) are included` と出る。ブロックが無いときは `scripts/init-ghost.ps1 -NarignoreDevBlock` で足す。スキルを `.agents/skills/` や `.claude/skills/` にコピーして入れたときも、このブロックで除外される。
+   - **開発用のファイル（`GHOST.md`、`AGENTS.md`、`CLAUDE.md`、`.mcp.json`、`.claude/`、`.agents/`、`build/`）と、リポジトリ用のファイル（`.github/`、`.gitignore`、`.gitattributes`、`.editorconfig`、`.narignore`、`.updateignore`）は、nar に入れない。** `.narignore` の開発用ブロック（`# files for developing the ghost with ukagaka-developer` から始まる）が除外する。入る場合は `-ListOnly` の最後に `note: ... development file(s) are included` と出る。ブロックが無いときは `scripts/init-ghost.ps1 -NarignoreDevBlock` で足す。スキルを `.agents/skills/` や `.claude/skills/` にコピーして入れたときも、このブロックで除外される。
    - nar から除外するファイルは `.narignore`（`.gitignore` と同じ書き方）で指定する。ネットワーク更新からの除外は `.updateignore`（先頭の `include:.narignore` で共通部分を取り込んでいる）。どちらも SSP が読むファイルで、`-ListOnly` は `.narignore` を SSP と同じように解釈して表示する。
    - SSP はフォルダの中身をそのまま固める。git の作業コピーでも、追跡されていないファイルは入る。`-ListOnly` の最後に件数が出るので、入れたくないものがあれば `.narignore` に足すか、消すかを作者に確かめる。
    - `.narinclude`（ホワイトリスト形式）は SSP が読むが、`-ListOnly` では一覧を出せない。

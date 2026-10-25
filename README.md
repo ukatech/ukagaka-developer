@@ -82,7 +82,7 @@ github の ukatech/ukagaka-developer を、このプロジェクトに入れて
 
 仕様検索 MCP（`https://ssp.shillest.net/ukadoc/mcp`、HTTP / Streamable HTTP）と調査用のエージェントは、プラグインでだけ自動で入ります。ほかのツールでは、使うツールの設定に登録してください（`agents/ukagaka-researcher.md` は、サブエージェントの定義として使えます）。
 
-ゴーストのフォルダの `.agents/` や `.claude/` は、nar に入りません（`.narignore` の開発用ブロックが除外します。下の「ゴーストの側に残るもの」）。
+ゴーストのフォルダの `.agents/` や `.claude/`、`GHOST.md` などの開発用のファイルと、`.github/`、`.gitignore`、`.editorconfig` などのリポジトリ用のファイルは、nar に入りません（`.narignore` の開発用ブロックが除外します。下の「ゴーストの側に残るもの」）。
 
 ## 使いかた
 

@@ -13,7 +13,7 @@
 | `shell/master/surfacetable.txt` | サーフェス番号と表情名の一覧（あるとき） |
 | `shell/master/descript.txt` | シェルの情報、メニューや吹き出し位置の設定 |
 | `install.txt` | インストール設定（名前、インストール先のフォルダ名、`refreshundeletemask` など） |
-| `.narignore` / `.updateignore` | nar / ネットワーク更新から除外するファイル。書き方は `.gitignore` と同じで、`include:ファイル名` で別のファイルを取り込める（パスはその行を書いたファイルのフォルダからの相対。取り込んだ先でも `include:` を書け、3 段まで）。SSP が使い（`scripts/build-nar.ps1` も SSP に作らせる。`-ListOnly` と `-Builtin` では `.narignore` を SSP と同じように自分で解釈する）、どちらもルートに置いたものだけを読む。`.narignore` の `# files for developing the ghost with ukagaka-developer` から始まるブロックが、開発用のファイル（`GHOST.md`、`AGENTS.md`、`CLAUDE.md`、`.mcp.json`、`.claude/`、`.agents/`、`build/`）を nar に入れないようにする |
+| `.narignore` / `.updateignore` | nar / ネットワーク更新から除外するファイル。書き方は `.gitignore` と同じで、`include:ファイル名` で別のファイルを取り込める（パスはその行を書いたファイルのフォルダからの相対。取り込んだ先でも `include:` を書け、3 段まで）。SSP が使い（`scripts/build-nar.ps1` も SSP に作らせる。`-ListOnly` と `-Builtin` では `.narignore` を SSP と同じように自分で解釈する）、どちらもルートに置いたものだけを読む。`.narignore` の `# files for developing the ghost with ukagaka-developer` から始まるブロックが、開発用のファイル（`GHOST.md`、`AGENTS.md`、`CLAUDE.md`、`.mcp.json`、`.claude/`、`.agents/`、`build/`）と、リポジトリ用のファイル（`.github/`、`.gitignore`、`.gitattributes`、`.editorconfig`、`.narignore`、`.updateignore`）を nar に入れないようにする |
 | `delete.txt` | ネットワーク更新のときに削除するファイル（あるとき） |
 | `updates2.dau`、`updates.txt` | ネットワーク更新ファイル（`scripts/build-nar.ps1` が作る。ゴーストのルートに置いて配るもの。git には入れない） |
 | `.gitignore`、`.gitattributes`、`.editorconfig` | git と、エディタの設定（文字コード UTF-8、改行 LF、辞書のインデント）。`.gitattributes` は SHIORI によって `*.sat` の扱いが違う |

@@ -8,5 +8,13 @@
 /.agents/
 /build/
 
+# files of the repository (git, editor, GitHub); the nar does not need them
+/.github/
+/.gitignore
+/.gitattributes
+/.editorconfig
+/.narignore
+/.updateignore
+
 # balloon images of sstp.ps1 -Balloon, left only when the script was stopped midway
 /ghost/master/devkit-balloon-*/
