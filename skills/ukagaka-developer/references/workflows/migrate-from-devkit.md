@@ -34,7 +34,7 @@ konnoyayame（YAYA）と POST_and_KOMAINU（里々）の「AI 開発キット」
 1. 作者に何が起こるかを伝え、了承を得る。作業の前に、git の作業コピーなら未コミットの変更がないか確かめる（あれば、先にコミットか退避を勧める）。
 2. 計画を見る（何も変更しない）: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/migrate-from-devkit.ps1`
    - `delete`、`replace with a short stub`、`edit`、`kept by hand`、`workflows that still call tools/*.ps1` に分かれて出る。作者に要点を伝える。
-   - `DEVKIT-MAINTAINING.md` があるフォルダ（旧キットを配っているリポジトリそのもの）では、止まる。そのリポジトリがキットをやめるときだけ、`-Force` で進める。
+   - `DEVKIT-MAINTAINING.md` があるフォルダ（旧キットを配っているリポジトリそのもの）では、止まる。そのリポジトリがキットをやめるときだけ、`-AllowKitSource` を付けて進める（`DEVKIT-MAINTAINING.md` と `docs/devkit-maintaining/` も消える）。
 3. 了承を得てから実行する: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/migrate-from-devkit.ps1 -Apply`
    - 終了コード 2 は「済んだが、手作業が残っている」。出力の `KEPT` / `STALE` / `LEFTOVER` を片付ける。
    - 作者が変えたキットのファイルも消したいときだけ `-Force`（退避される）。

@@ -31,7 +31,9 @@ function Test-DevkitNarignoreHasDevBlock([string]$Text) {
 # Returns a .narignore text with the development block: the line "include:tools/devkit.narignore" of the old
 # development kit is replaced by the block; without that line, the block is appended. A text that has the block
 # is returned as it is.
-function Add-DevkitNarignoreDevBlock([string]$Text) {
+# -LegacyKitRules is the text of the old kit's tools/devkit.narignore: its rules that still matter (for YAYA, the files of
+# the yaya-dic repository that the nar leaves out, and *.yaya-dic-new) are carried over under a comment.
+function Add-DevkitNarignoreDevBlock([string]$Text, [string]$LegacyKitRules = '') {
     $text = $Text -replace "`r`n", "`n"
     if (Test-DevkitNarignoreHasDevBlock $text) { return $text }
     $text = $text.Replace('Used by SSP and tools/build-nar.ps1.', 'Used by SSP and by build-nar.ps1 of ukagaka-developer.')
@@ -49,6 +51,19 @@ function Add-DevkitNarignoreDevBlock([string]$Text) {
         $lines.Add($line)
     }
     $result = $lines -join "`n"
+    if ($replaced -and $LegacyKitRules) {
+        $carried = New-Object System.Collections.Generic.List[string]
+        $skipPattern = '^(/?tools/|/?build/|/\.claude/settings\.local\.json|\*\.devkit-new|/ghost/master/devkit-balloon)'
+        foreach ($rule in ($LegacyKitRules -replace "`r`n", "`n").Split("`n")) {
+            $trimmed = $rule.Trim()
+            if (-not $trimmed -or $trimmed.StartsWith('#') -or $trimmed -match $skipPattern) { continue }
+            if ($lines -contains $rule -or $lines -contains $trimmed) { continue }
+            $carried.Add($trimmed)
+        }
+        if ($carried.Count -gt 0) {
+            $result = $result.TrimEnd("`n") + "`n`n# carried over from tools/devkit.narignore of the old development kit`n" + ($carried -join "`n")
+        }
+    }
     if (-not $replaced) { $result = $result.TrimEnd("`n") + "`n`n" + $block }
     if (-not $result.EndsWith("`n")) { $result += "`n" }
     return $result

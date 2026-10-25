@@ -25,7 +25,8 @@
     Not touched, only reported: other workflows that call tools/*.ps1 (auto_release.yml, auto_release_devkit.yaml),
     leftover *.devkit-new / *.yaya-dic-new files.
     A folder that has DEVKIT-MAINTAINING.md is the repository that distributes the old kit; the script refuses to
-    work in it unless -Force is given.
+    work in it unless -AllowKitSource is given. With it, DEVKIT-MAINTAINING.md and docs/devkit-maintaining/ (the notes
+    for maintaining the kit, which are not in the kit's file list) are removed too.
     Exit codes: 0 = done or nothing to do, 1 = failed, 2 = done, but something has to be handled by hand.
 .EXAMPLE
     powershell -NoProfile -ExecutionPolicy Bypass -File scripts/migrate-from-devkit.ps1
@@ -38,6 +39,8 @@ param(
     [switch]$Apply,
     # Also delete kit files that were changed or have no entry in the lock (they are backed up).
     [switch]$Force,
+    # Work in the repository that distributes the old kit (it has DEVKIT-MAINTAINING.md), and remove the maintenance notes too.
+    [switch]$AllowKitSource,
     # Ghost root folder: the one that holds ghost/ and shell/ (default: found from the current folder upwards).
     [string]$GhostRoot
 )
@@ -56,9 +59,9 @@ if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
     if ($conflictsOnly.Count -gt 0) { Write-Host "note: unmerged files are left: $($conflictsOnly -join ', ')" }
     exit 0
 }
-if ((Test-Path -LiteralPath (Join-Path $root 'DEVKIT-MAINTAINING.md')) -and -not $Force) {
+if ((Test-Path -LiteralPath (Join-Path $root 'DEVKIT-MAINTAINING.md')) -and -not $AllowKitSource) {
     Write-Host 'migrate-from-devkit: STOPPED - DEVKIT-MAINTAINING.md is in this folder, so it is the repository that distributes the old kit.'
-    Write-Host 'Migrating it removes the kit from it (and from what it distributes). Only do that when the repository retires the kit; then run again with -Force.'
+    Write-Host 'Migrating it removes the kit from it (and from what it distributes). Only do that when the repository retires the kit; then run again with -AllowKitSource.'
     exit 1
 }
 
@@ -104,6 +107,13 @@ if (Test-Path -LiteralPath $binDir -PathType Container) {
 $localJson = Join-Path $root 'tools/local.json'
 $hasLocalJson = Test-Path -LiteralPath $localJson -PathType Leaf
 if ($hasLocalJson) { $extraDelete.Add('tools/local.json') }
+if ($AllowKitSource) {
+    if (Test-Path -LiteralPath (Join-Path $root 'DEVKIT-MAINTAINING.md') -PathType Leaf) { $extraDelete.Add('DEVKIT-MAINTAINING.md') }
+    $notesDir = Join-Path $root 'docs/devkit-maintaining'
+    if (Test-Path -LiteralPath $notesDir -PathType Container) {
+        foreach ($note in @(Get-ChildItem -LiteralPath $notesDir -Recurse -File -Force)) { $extraDelete.Add($note.FullName.Substring($root.Length + 1).Replace('\', '/')) }
+    }
+}
 foreach ($exe in @(Get-ChildItem -LiteralPath (Join-Path $root 'tools') -File -Filter '*.exe' -ErrorAction SilentlyContinue)) {
     $extraDelete.Add('tools/' + $exe.Name)
 }
@@ -300,12 +310,15 @@ if ($hasLocalJson) {
 
 # 6. .narignore
 if ($narignoreChange) {
-    Write-DevkitTextFile $narignorePath (Add-DevkitNarignoreDevBlock ([IO.File]::ReadAllText($narignorePath, $DevkitUtf8)))
+    $legacyRules = ''
+    $legacyRulesPath = Join-Path $backupDir 'tools/devkit.narignore'
+    if (Test-Path -LiteralPath $legacyRulesPath -PathType Leaf) { $legacyRules = [IO.File]::ReadAllText($legacyRulesPath, $DevkitUtf8) }
+    Write-DevkitTextFile $narignorePath (Add-DevkitNarignoreDevBlock ([IO.File]::ReadAllText($narignorePath, $DevkitUtf8)) $legacyRules)
     $report.Add('updated   .narignore (block of development files)')
 }
 
 # 7. empty folders
-foreach ($folder in @('tools/lib', 'tools/hooks', 'tools/devkit/seed', 'tools/devkit', 'tools', 'docs/agents/workflows', 'docs/agents', 'docs', '.claude/agents', '.claude')) {
+foreach ($folder in @('docs/devkit-maintaining', 'tools/lib', 'tools/hooks', 'tools/devkit/seed', 'tools/devkit', 'tools', 'docs/agents/workflows', 'docs/agents', 'docs', '.claude/agents', '.claude')) {
     $full = Join-Path $root $folder
     if ((Test-Path -LiteralPath $full -PathType Container) -and -not (Get-ChildItem -LiteralPath $full -Force | Select-Object -First 1)) {
         Remove-Item -LiteralPath $full -Force
