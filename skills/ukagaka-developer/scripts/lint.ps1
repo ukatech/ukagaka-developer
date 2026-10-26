@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-    Looks for undefined / unused variables and functions (YAYA only).
+    Checks the dictionaries without running them: YAYA looks for undefined / unused variables and functions, SATORI
+    runs ShioriLint (wrong jump targets, wrong variable assignment lines, names that nothing defines, and so on).
 .DESCRIPTION
     A front for the two SHIORI that the skill supports: it finds out whether the ghost runs on YAYA or SATORI
     (the shiori key of ghost/master/descript.txt, or the dll in ghost/master) and runs

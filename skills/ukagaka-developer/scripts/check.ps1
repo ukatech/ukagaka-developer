@@ -1,8 +1,9 @@
 <#
 .SYNOPSIS
-    Runs check-dic, check-shell and (YAYA only) lint in order.
+    Runs check-dic, check-shell and lint in order.
 .DESCRIPTION
-    check-dic and lint go to the ghost's SHIORI (YAYA or SATORI). SATORI has no lint step.
+    check-dic and lint go to the ghost's SHIORI (YAYA or SATORI). The lint of SATORI is ShioriLint (satori.dll Mc206-1 or
+    later); with an older satori.dll the step is skipped.
     Exit codes: 0 = all passed (steps whose tool is missing are reported as skipped),
     1 = a step failed, or a step was skipped while -RequireAll is given.
 .EXAMPLE
@@ -26,7 +27,7 @@ $shioriId = Get-DevkitShiori
 $steps = New-Object System.Collections.Generic.List[string]
 $steps.Add('check-dic')
 if (-not $SkipShell) { $steps.Add('check-shell') }
-if (-not $SkipLint -and $shioriId -eq 'yaya') { $steps.Add('lint') }
+if (-not $SkipLint) { $steps.Add('lint') }
 
 $powershell = (Get-Process -Id $PID).Path
 $failed = @()

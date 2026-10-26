@@ -19,7 +19,7 @@
    - アプリを入れた直後は PATH が反映されていないことがある。見つからないままなら、ターミナル（エージェント）を起動し直してもらう。
 3. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup.ps1` を実行する。チェック用ツール（tamacs.exe）を、Windows に入っている .NET Framework のコンパイラでビルドする（ダウンロードはない）。YAYA で git clone したフォルダなら、システム辞書の submodule も取得する（ネットワークに出ることを一言伝える）。最後に doctor の結果が出るので、`required` がすべて ok になったか確かめる。
 4. ゴーストのルートに入門用のファイルが足りなければ（`GHOST.md`、`AGENTS.md`、`CLAUDE.md`、`.narignore` など）、`powershell -NoProfile -ExecutionPolicy Bypass -File scripts/init-ghost.ps1 -DryRun` で作るものを確かめ、作者に伝えてから、`-DryRun` を外して実行する（あるファイルは変えない）。`.narignore` に開発用ファイルの除外が無ければ `-NarignoreDevBlock` を付ける。GitHub を使うなら `-Workflow`（`references/workflows/ci.md`）。
-5. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1` で、辞書とシェル（YAYA は lint も）のチェックが通ることを確かめる。
+5. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1` で、辞書とシェルと lint のチェックが通ることを確かめる。
 6. doctor の `ghost-profile` が ok でなければ（`GHOST.md` が無い、または先頭に `<!-- devkit:ghost-template -->` が残っている）、`GHOST.md` を下書きする。
    - 無ければ手順 4 の `init-ghost.ps1` が、SHIORI に合った空の書式（`templates/<yaya|satori>/GHOST.md`）を作る。
    - YAYA: `ghost/master/descript.txt`、`ghost/master/yaya.txt`、辞書（`dic/` 以下のファイル名と、どのイベントがどこにあるか）。里々: `ghost/master/descript.txt`、`ghost/master/satori_conf.txt`（`＊初期化` の初期値と、`＠SAORI` に登録した SAORI）、辞書（`ghost/master/dic*.txt` のファイル名と、どのイベント（`＊OnBoot` など）がどこにあるか。名前のない `＊` はランダムトーク）。

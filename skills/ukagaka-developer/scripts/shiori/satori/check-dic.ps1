@@ -14,7 +14,8 @@
       - a wrong line in the SAORI list of satori_conf.txt, or a SAORI dll that does not load
       - a dictionary file that cannot be read, or no dic*.txt at all
     SATORI checks nothing else when it loads: the dictionaries are interpreted when a sentence is run, so a
-    misspelled function, a bad variable assignment line or a jump to a missing sentence shows up only then.
+    misspelled function, a bad variable assignment line or a jump to a missing sentence shows up only then. Those can
+    be found without running anything by scripts/lint.ps1 (ShioriLint, SATORI Mc206-1 or later).
     -Run runs every sentence that has a plain name (no condition, one word) once with ShioriEcho in the temporary
     copy and reads the log of that too: a call with arguments to a name that does not exist, a calculation that
     failed, a wrong number of arguments, an assignment line without a tab or equal sign, and so on. Names that were

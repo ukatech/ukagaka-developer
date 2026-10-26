@@ -79,7 +79,7 @@ templates/     ゴーストに足す入門用ファイル（GHOST.md など）�
 
 ## 作業のルール
 
-1. **辞書や `ghost/master/` の設定を変更したら、必ず `scripts/check-dic.ps1` を通す**（`scripts/check.ps1` は、シェルのチェックも続けて行う）。エラーが残ったゴーストは、YAYA では緊急モードで起動してほとんど話さなくなり、里々では辞書が正しく読み込まれない。`shell/` を変更したら `scripts/check-shell.ps1` も通す。
+1. **辞書や `ghost/master/` の設定を変更したら、必ず `scripts/check-dic.ps1` を通す**（`scripts/check.ps1` は、シェルのチェックと `scripts/lint.ps1` も続けて行う。里々は Mc206-1 以降なら、`lint.ps1` が辞書を実行せずに書き方の誤りや飛び先・名前の書き間違いを全部探すので、`check-dic.ps1` が通った後に行う）。エラーが残ったゴーストは、YAYA では緊急モードで起動してほとんど話さなくなり、里々では辞書が正しく読み込まれない。`shell/` を変更したら `scripts/check-shell.ps1` も通す。
 2. **辞書の関数やトークを書いたり直したりしたら、`scripts/shiori.ps1` で実際に呼び出して**、返すスクリプトと実行時のエラー（存在しない関数の呼び出しなど。読み込みのチェックでは見つからない）を確かめる。ファイルの書き込み、外部プログラムの実行、**SAORI の呼び出し**をする関数やトークは、本当に動く（SAORI の中には、画面を塗りつぶすものもある）。中身を読んで、作者に断ってから呼ぶ。
 3. **SSP で動かして確かめるときは、先に `scripts/run-ssp.ps1` で試験用の SSP（readonly）を立ててから** `scripts/sstp.ps1` で送る。立てていないと、作者がふだん使っている SSP（9801）に送ってしまう。`scripts/sstp.ps1` と `scripts/run-ssp.ps1` が表示する SSP のエラーログ（終了コード 2）も見る。再生したトークで解釈できなかったタグは `[GHOST/Script]` のエラーとして出るので、それも直す（`references/workflows/try-in-ssp.md`）。
 4. 仕様（さくらスクリプトのタグ、SHIORI イベントの名前と Reference、YAYA の関数、里々の関数、`descript.txt` や `surfaces.txt` の項目）を**推測で書かない**。確かでないときは、下の「仕様を調べる」で確かめる。

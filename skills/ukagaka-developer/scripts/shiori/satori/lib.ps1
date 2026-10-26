@@ -293,6 +293,9 @@ function Get-DevkitSatoriDiagnostics {
 
         # The request and the response are echoed in the log; what they hold is not a message of SATORI.
         if ($phase -eq 'request' -or $line.StartsWith('Value=')) { continue }
+        # ShioriLint (scripts/shiori/satori/lint.ps1) writes its findings to the log as "lint: ..." lines too; lint.ps1 reads
+        # them from the response, and some of them would match the patterns below at another level.
+        if ($line.StartsWith('lint: ')) { continue }
         # "return: <script>" repeats what the lines above it already said; only patterns that read the text of the
         # script itself look at it.
         $isReturn = $line.TrimStart().StartsWith('return:')
@@ -401,7 +404,7 @@ function Get-DevkitSatoriTalkNames([string]$GhostDir, [switch]$Skipped) {
 # --- doctor and setup ---------------------------------------------------------------------
 
 # What the doctor tells tamacs.exe is used for.
-$DevkitTamacsPurpose = 'Loads satori.dll without SSP: dictionary check (check-dic.ps1 and the check after each edit), shiori.ps1'
+$DevkitTamacsPurpose = 'Loads satori.dll without SSP: dictionary check (check-dic.ps1 and the check after each edit), shiori.ps1, lint.ps1'
 
 # Adds the SATORI items to the doctor (Add-DoctorItem is defined by doctor.ps1).
 function Add-DevkitShioriDoctorItems([string]$Ps, [bool]$IsGitWorkingCopy) {
@@ -432,6 +435,13 @@ function Add-DevkitShioriDoctorItems([string]$Ps, [bool]$IsGitWorkingCopy) {
     Add-DoctorItem -Id 'satori-loghandler' -Name 'SATORI Mc201-10+' -Level 'required' -Ok $logHandlerOk `
         -Purpose 'tamacs.exe reads the SATORI log through Set_loghandler: dictionary check (check-dic.ps1 and the check after each edit), shiori.ps1' `
         -Detail $(if (-not (Test-Path -LiteralPath $dll)) { 'satori.dll not found (see ghost files)' } elseif ($logHandlerOk) { 'satori.dll has Set_loghandler' } else { "$($satoriVersion.Text) has no Set_loghandler" }) `
+        -Fix "Run: $Ps scripts/update-shiori.ps1 (see references/satori/update.md)"
+
+    # ShioriLint, the static check of the dictionaries behind scripts/lint.ps1, exists since Mc206-1.
+    $lintOk = (-not $satoriVersion) -or (-not $satoriVersion.Number) -or ($satoriVersion.Number -ge (New-Object System.Version(206, 1)))
+    Add-DoctorItem -Id 'satori-lint' -Name 'SATORI Mc206-1+' -Level 'recommended' -Ok $lintOk `
+        -Purpose 'ShioriLint, the static check of the dictionaries (lint.ps1, and the lint step of check.ps1)' `
+        -Detail $(if (-not $satoriVersion) { 'satori.dll not found (see ghost files)' } elseif ($lintOk) { "$($satoriVersion.Text) has ShioriLint" } else { "$($satoriVersion.Text) has no ShioriLint" }) `
         -Fix "Run: $Ps scripts/update-shiori.ps1 (see references/satori/update.md)"
 }
 

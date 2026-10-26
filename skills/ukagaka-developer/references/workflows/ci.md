@@ -10,6 +10,7 @@
 2. `git clone --depth 1 https://github.com/ukatech/ukagaka-developer.git $RUNNER_TEMP/ukagaka-developer`。
 3. `scripts/check-dic.ps1 -Ci -GhostRoot $GITHUB_WORKSPACE`。`-Ci` で、エラーが GitHub Actions の注釈（アノテーション）になる。
 
+- 里々（satori.dll Mc206-1 以降）の静的検査 ShioriLint を CI でも行うなら、`scripts/lint.ps1 -Ci -GhostRoot $GITHUB_WORKSPACE` の手順を足す（error は注釈になり、終了コード 1。warning も失敗にするなら `-Strict`）。テンプレートには入れていない: 既存のゴーストが、辞書の error で急に失敗するため。
 - **Windows のランナー（`windows-latest`）で動かす**。tamacs.exe を、ランナーに入っている .NET Framework の `csc.exe` でビルドして、`yaya.dll` / `satori.dll`（32 ビット）を読み込むため。
 - スキルは `main` の最新を取るので、スキルが更新されると、ゴーストを変えなくてもチェックの内容が変わる。固定したいときは、clone に `--branch <タグまたはブランチ>` を付ける（今のところ、リポジトリにタグは無いので、コミットを固定するなら `git clone` のあとに `git -C ... checkout <SHA>`）。
 - `scripts/check-dic.ps1` は GitHub の API を使わない。`update-shiori.ps1` などを CI で動かすときは、API の回数制限を避けるため `GITHUB_TOKEN` を環境変数に渡す（スクリプトが使う）。

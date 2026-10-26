@@ -1,6 +1,6 @@
 # tamacs
 
-yaya.dll と satori.dll を SSP なしで読み込むツール（SHIORI の dll は 32bit なので、tamacs も 32bit の exe）。`scripts/check-dic.ps1`、`scripts/shiori.ps1`、`scripts/lint.ps1`（YAYA のみ）が使う。以下は YAYA を読み込むときの説明で、里々を読み込むときの違い（ログの受け取り、一時コピーで動かす理由）は `satori-check.md`。tamac.exe（https://github.com/YAYA-shiori/tama ）を C# に移したもので、コマンドライン、出力、終了コードは tamac に合わせている。
+yaya.dll と satori.dll を SSP なしで読み込むツール（SHIORI の dll は 32bit なので、tamacs も 32bit の exe）。`scripts/check-dic.ps1`、`scripts/shiori.ps1`、`scripts/lint.ps1`（YAYA の lint と、里々の ShioriLint）が使う。以下は YAYA を読み込むときの説明で、里々を読み込むときの違い（ログの受け取り、一時コピーで動かす理由）は `satori-check.md`。tamac.exe（https://github.com/YAYA-shiori/tama ）を C# に移したもので、コマンドライン、出力、終了コードは tamac に合わせている。
 
 ## ビルド
 
