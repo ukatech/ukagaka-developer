@@ -3,7 +3,8 @@
     Creates the starter files of a ghost that are missing: GHOST.md, AGENTS.md, CLAUDE.md, .narignore, .updateignore,
     .gitattributes and .editorconfig (from templates/ of the skill).
 .DESCRIPTION
-    Files that already exist are never changed. The templates depend on the SHIORI of the ghost (YAYA or SATORI).
+    Files that already exist are never changed. The templates depend on the SHIORI of the ghost (YAYA, SATORI or
+    KAWARI).
     GHOST.md is created as a blank template (it starts with a marker line); fill it in from the dictionaries and the
     shell (references/workflows/setup.md), then remove the marker.
     -NarignoreDevBlock adds the block of development files (GHOST.md, AGENTS.md, .claude/, .agents/, build/ and so on)
@@ -32,7 +33,7 @@ Initialize-DevkitConsole
 
 $shioriId = Get-DevkitShiori
 if (-not $shioriId) {
-    Write-Host 'init-ghost: FAILED - this ghost has neither ghost/master/yaya.dll nor ghost/master/satori.dll. Only YAYA and SATORI are supported.'
+    Write-Host "init-ghost: FAILED - this ghost has no SHIORI that the skill supports. Supported: $DevkitShioriSupported."
     exit 1
 }
 $mode = if ($DryRun) { 'would create' } else { 'created' }

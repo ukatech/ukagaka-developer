@@ -1,19 +1,21 @@
-// tamacs: loads a SHIORI dll (yaya.dll, satori.dll), prints its log, and optionally sends one request.
+// tamacs: loads a SHIORI dll (yaya.dll, satori.dll, shiori.dll of KAWARI), prints its log, and optionally sends one request.
 // A C# port of tamac.exe (https://github.com/YAYA-shiori/tama) that the kit builds by itself; see
 // Get-DevkitTamacs in tools/lib/common.ps1. The command line, the output and the exit codes follow tamac.
 // Keep this file ASCII-only and within C# 5 (it is compiled with csc.exe of the .NET Framework, as a 32-bit exe:
 // the SHIORI dlls are 32-bit). The same file is used by the YAYA and the SATORI development kits.
 //
-// Usage: tamacs <shiori dll> [-l fatal|error|warning|note] [--ci] [-r|--request]
+// Usage: tamacs <shiori dll> [-l fatal|error|warning|note] [--ci] [-r|--request] [--no-loghandler]
 //   -l           lowest level of the messages that are shown and make the exit code 2 (default: error)
 //   --ci         GitHub Actions annotations (also when the environment variable GITHUB_ACTIONS is set)
 //   -r           reads a raw SHIORI request from the standard input until EOF, sends it, and prints the response
 //                to the standard output; the log then goes to the standard error
+//   --no-loghandler  also runs a dll that has no Set_loghandler (KAWARI), which then logs nothing; without this
+//                option such a dll gives exit code 3
 // Exit codes: 0 = OK, 1 = the dll could not be loaded or the request failed (or CI_check_failed with --ci),
 //             2 = a message at or above -l was logged, 3 = the dll has no Set_loghandler.
 //
 // Unlike tamac, the log is received only through Set_loghandler (no window, no logsend): the SHIORI dll must
-// export it (YAYA; SATORI since Mc201-10). Requests are always sent in UTF-8 and the charset notices in the log
+// export it (YAYA; SATORI since Mc201-10), unless --no-loghandler is given. Requests are always sent in UTF-8 and the charset notices in the log
 // are ignored, as tamac does with the log handler: YAYA notifies the charset of its log file, not of the
 // requests, and SATORI always notifies UTF-8.
 using System;
@@ -61,6 +63,7 @@ internal static class Tamacs
     static bool detected;
     static bool ciMode;
     static bool requestMode;
+    static bool allowNoLogHandler;
     // Kept in a static field so that the delegate is not collected while the dll can call it.
     static LogHandler logHandler;
     static bool inDicLoad, inRequestEnd;
@@ -78,7 +81,7 @@ internal static class Tamacs
 
         if (args.Length < 1)
         {
-            Write(stderr, "Usage: tamacs <shiori dll> [-l fatal|error|warning|note] [--ci] [-r|--request]\n");
+            Write(stderr, "Usage: tamacs <shiori dll> [-l fatal|error|warning|note] [--ci] [-r|--request] [--no-loghandler]\n");
             return 1;
         }
         for (int i = 1; i < args.Length; i++)
@@ -101,6 +104,10 @@ internal static class Tamacs
             else if (Is(arg, "-r") || Is(arg, "--request"))
             {
                 requestMode = true;
+            }
+            else if (Is(arg, "--no-loghandler"))
+            {
+                allowNoLogHandler = true;
             }
         }
         if (!ciMode && Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != null)
@@ -127,7 +134,7 @@ internal static class Tamacs
             FreeLibrary(dll);
             return 1;
         }
-        if (setLogHandler == null)
+        if (setLogHandler == null && !allowNoLogHandler)
         {
             Fail("Interface \"Set_loghandler\" not found; this SHIORI is too old for tamacs");
             FreeLibrary(dll);
@@ -136,8 +143,11 @@ internal static class Tamacs
         if (ciMode && ciCheck == null)
             Fail("Interface \"CI_check_failed\" not found");
 
-        logHandler = OnLog;
-        setLogHandler(logHandler);
+        if (setLogHandler != null)
+        {
+            logHandler = OnLog;
+            setLogHandler(logHandler);
+        }
 
         // load() takes the folder of the dll with a trailing separator, in the ANSI code page (as tamac does).
         byte[] dir = Encoding.Default.GetBytes(dllPath.Substring(0, dllPath.LastIndexOfAny(new[] { '\\', '/' }) + 1));

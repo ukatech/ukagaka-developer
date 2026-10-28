@@ -6,7 +6,9 @@
       ghost/master/dic/system nor ghost/master/system has .dic files.
     - Builds tamacs.exe from scripts/lib/tamacs.cs into the bin folder of the home folder (UKADEV_HOME, or
       the ukagaka-developer folder under LOCALAPPDATA); the scripts also build it on first use.
-    - Downloads the tools listed in scripts/tools.json into the same bin folder (none at present).
+    - Downloads the tools listed in scripts/tools.json into the same bin folder: those for every ghost, and those
+      for the SHIORI of this ghost (the "shiori" key; at present kosui.exe of KAWARI, from the latest release of
+      ukatech/kawari).
     - Finally prints the result of scripts/doctor.ps1.
     Applications such as Git or SSP are not installed; doctor.ps1 tells how to get them.
     Exit codes: 0 = OK, 1 = a step failed or a required item is still missing.
@@ -46,6 +48,10 @@ if ($tamacs.Path) {
 $manifest = Get-DevkitToolManifest
 # Not @($manifest.PSObject.Properties.Name): for an empty manifest it would hold one $null.
 $names = @($manifest.PSObject.Properties | ForEach-Object { $_.Name })
+# A tool with a "shiori" key is only for the ghosts of that SHIORI (kosui.exe: KAWARI), unless -Tool names it.
+if (-not $Tool) {
+    $names = @($names | Where-Object { -not $manifest.$_.shiori -or $manifest.$_.shiori -eq $shioriId })
+}
 if ($Tool) {
     foreach ($name in $Tool) {
         if ($names -notcontains $name) { throw "Unknown tool '$name'. Available: $($names -join ', ')" }
@@ -89,6 +95,10 @@ foreach ($name in $names) {
     if ($installed -and -not $Force) {
         if ($entry.version -eq 'latest' -and $entry.type -eq 'exe') {
             $current = (Get-FileHash -LiteralPath $exePath -Algorithm SHA256).Hash -eq $sha256
+        } elseif ($entry.version -eq 'latest' -and $release.Tag -match '^v?(\d+\.\d+\.\d+)$') {
+            # A zip cannot be compared with the download; the file version of the exe is compared with the release tag.
+            $fileVersion = Get-DevkitFileVersion $exePath
+            $current = [bool]$fileVersion -and ((New-Object System.Version($fileVersion.Major, $fileVersion.Minor, $fileVersion.Build)) -ge [version]$matches[1])
         } else {
             $current = Test-DevkitToolCurrent $name
         }

@@ -118,7 +118,7 @@ foreach ($name in @('.claude-plugin/plugin.json', '.claude-plugin/marketplace.js
 if (-not (Test-Path -LiteralPath (Join-Path $repo 'agents/ukagaka-researcher.md'))) { Fail 'agents/ukagaka-researcher.md is missing' }
 
 # --- official URLs that moved ---------------------------------------------------------------
-$ExpectedUrls = @('https://ukatech.shillest.net/satori-docs/')
+$ExpectedUrls = @('https://ukatech.shillest.net/satori-docs/', 'https://ukatech.shillest.net/kawari-docs/')
 foreach ($url in $ExpectedUrls) {
     if (-not $skillText.Contains($url)) { Fail "SKILL.md does not mention $url" }
 }

@@ -1,2 +1,12 @@
 {
+  "kosui": {
+    "shiori": "kawari",
+    "version": "latest",
+    "minimumVersion": "9.2.0",
+    "repository": "ukatech/kawari",
+    "asset": "kawari-*.zip",
+    "type": "zip",
+    "installDir": "kawari",
+    "exe": "kawari/kosui.exe"
+  }
 }

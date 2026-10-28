@@ -143,6 +143,13 @@ if (-not $hasNarInclude) {
             Write-Host 'build-nar: FAILED - ghost/master/satori.dll is missing or excluded (SATORI would not load in the nar)'
             exit 1
         }
+    } elseif ($shioriId -eq 'kawari') {
+        foreach ($required in @('ghost/master/shiori.dll', 'ghost/master/kawarirc.kis')) {
+            if ($included -notcontains $required) {
+                Write-Host "build-nar: FAILED - $required is missing or excluded (KAWARI would not load in the nar)"
+                exit 1
+            }
+        }
     }
     if ($included -notcontains 'install.txt') {
         Write-Host 'build-nar: FAILED - install.txt is missing'

@@ -179,7 +179,7 @@ if (-not $Apply) {
 
 # --- apply -------------------------------------------------------------------------------
 if (-not $shioriId) {
-    Write-Host 'migrate-from-devkit: FAILED - this ghost has neither ghost/master/yaya.dll nor ghost/master/satori.dll; the stubs cannot be chosen.'
+    Write-Host "migrate-from-devkit: FAILED - this ghost has no SHIORI that the skill supports ($DevkitShioriSupported); the stubs cannot be chosen."
     exit 1
 }
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'

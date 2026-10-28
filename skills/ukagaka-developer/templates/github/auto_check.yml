@@ -19,8 +19,15 @@ jobs:
         # The scripts of the skill. To pin a version, add "--branch <tag or branch>" (see references/workflows/ci.md).
         shell: pwsh
         run: git clone --depth 1 https://github.com/ukatech/ukagaka-developer.git "$env:RUNNER_TEMP/ukagaka-developer"
+      - name: tools
+        # KAWARI only: kosui.exe, which the dictionary check of KAWARI uses (the latest release of ukatech/kawari).
+        # Nothing is done for YAYA and SATORI. The token avoids the rate limit of the GitHub API on shared runners.
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: 'if (Test-Path "$env:GITHUB_WORKSPACE/ghost/master/kawarirc.kis") { & "$env:RUNNER_TEMP/ukagaka-developer/skills/ukagaka-developer/scripts/setup.ps1" -Tool kosui -GhostRoot $env:GITHUB_WORKSPACE }; exit 0'
       - name: dictionary check
-        # Builds tamacs.exe with csc.exe of the .NET Framework on the runner, loads the SHIORI dll with it and reads
-        # its log (YAYA or SATORI, found from ghost/master)
+        # YAYA and SATORI: builds tamacs.exe with csc.exe of the .NET Framework on the runner, loads the SHIORI dll
+        # with it and reads its log. KAWARI: kosui --check (found from ghost/master)
         shell: pwsh
         run: '& "$env:RUNNER_TEMP/ukagaka-developer/skills/ukagaka-developer/scripts/check-dic.ps1" -Ci -GhostRoot $env:GITHUB_WORKSPACE'

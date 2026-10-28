@@ -1,0 +1,20 @@
+root = true
+
+[*]
+end_of_line = lf
+
+# Dictionaries of KAWARI may still be Shift_JIS (KAWARI Phase 9 reads UTF-8 and Shift_JIS): no charset is set for
+# them, so that an editor keeps the encoding of each file. New files are UTF-8 without BOM. To convert the old
+# ones, see references/kawari/dictionary.md of ukagaka-developer.
+[*.{kis,txt}]
+insert_final_newline = true
+
+[*.{ps1,cs}]
+charset = utf-8
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,md}]
+charset = utf-8
+indent_style = space
+indent_size = 2

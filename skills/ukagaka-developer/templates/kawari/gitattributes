@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+*.dll binary
+*.exe binary
+*.png binary
+*.ico binary
+*.pnr binary
+*.nar binary
+*.dau binary
+*.zip binary
+# encrypted dictionaries of KAWARI (kawari_encode2)
+*.kaw binary

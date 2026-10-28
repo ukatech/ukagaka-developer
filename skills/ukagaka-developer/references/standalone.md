@@ -4,7 +4,7 @@
 
 - [ ] `ghost/master/descript.txt`: `name`、`sakura.name`、`kero.name`、`craftman`（半角英数）、`craftmanw`、`craftmanurl`、`id`（あるとき）
 - [ ] `install.txt`: `name`、`directory`（インストール先のフォルダ名。半角英数で、他のゴーストと重ならないもの）
-- [ ] ネットワーク更新の URL（YAYA は `On_homeurl`、里々は `＠homeurl` など。ゴーストによって場所が違う）。自分の URL に変えるか、更新しないなら消す。**元の URL のまま配布すると、元のゴーストの更新で、改造した内容が上書きされてしまう。**
+- [ ] ネットワーク更新の URL（YAYA は `On_homeurl`、里々は `＠homeurl`、華和梨は `homeurl` を返すエントリ（`resource.homeurl` など）。ゴーストによって場所が違う）。自分の URL に変えるか、更新しないなら消す。**元の URL のまま配布すると、元のゴーストの更新で、改造した内容が上書きされてしまう。**
 - [ ] シェル: 元のシェルの利用条件を `GHOST.md` で確かめる。改変した画像の配布が許されていなければ、自作のシェルか利用許可のあるシェルに差し替え、シェルの `descript.txt`（`name`、`craftman` など）も変える。
 - [ ] `readme.txt`、`README.md`、`thumbnail.png`（または `.pnr`）、`delete.txt`（元のゴーストの更新用なので、自分のゴーストに合わせて見直す）。原作者の readme は、謝辞やクレジットを残して書き直す。
 - [ ] 名前やキャラクター設定に関わる台詞（初回起動の自己紹介、ランダムトーク、マウスへの反応など）

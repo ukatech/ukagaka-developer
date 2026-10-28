@@ -4,7 +4,7 @@
 .DESCRIPTION
     Read-only: nothing is installed or changed.
     Each item has a level: required (the checks cannot run without it), recommended, or optional.
-    The items of the ghost's SHIORI (YAYA or SATORI) come from scripts/shiori/<name>/lib.ps1.
+    The items of the ghost's SHIORI (YAYA, SATORI or KAWARI) come from scripts/shiori/<name>/lib.ps1.
     Exit codes: 0 = all required items are ready, 1 = a required item is missing.
 .EXAMPLE
     powershell -NoProfile -ExecutionPolicy Bypass -File scripts/doctor.ps1
@@ -41,7 +41,7 @@ $tamacsPurpose = 'Loads the SHIORI dll without SSP: dictionary check, shiori.ps1
 # --- Windows ---------------------------------------------------------------------------
 $isWindowsOs = [Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT
 Add-DoctorItem -Id 'windows' -Name 'Windows' -Level 'required' -Ok $isWindowsOs `
-    -Purpose 'SSP, YAYA, SATORI and tamacs.exe run only on Windows' `
+    -Purpose 'SSP, YAYA, SATORI, KAWARI and tamacs.exe run only on Windows' `
     -Detail ([Environment]::OSVersion.VersionString) `
     -Fix 'Use a Windows PC.'
 
@@ -58,9 +58,10 @@ if ($shioriId) {
     Add-DevkitShioriDoctorItems -Ps $ps -IsGitWorkingCopy $isGitWorkingCopy
     $tamacsPurpose = $DevkitTamacsPurpose
 } else {
+    $unsupported = Get-DevkitUnsupportedShioriReason
     Add-DoctorItem -Id 'ghost' -Name 'ghost files' -Level 'required' -Ok $false `
-        -Purpose 'The ghost itself, and a SHIORI that the skill supports (YAYA or SATORI)' `
-        -Detail 'neither ghost/master/yaya.dll nor ghost/master/satori.dll was found, and descript.txt has no shiori key for them' `
+        -Purpose "The ghost itself, and a SHIORI that the skill supports: $DevkitShioriSupported" `
+        -Detail $(if ($unsupported) { $unsupported } else { 'no supported SHIORI was found in ghost/master, and descript.txt has no shiori key for them' }) `
         -Fix 'Work in the ghost root folder (the one that contains ghost/ and shell/). Other SHIORI are not supported yet.'
 }
 

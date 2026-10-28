@@ -5,18 +5,18 @@
 - 以下の `<ps>` は `powershell -NoProfile -ExecutionPolicy Bypass -File` の略。Windows PowerShell 5.1 でも PowerShell 7 でも動く。
 - `scripts/` は、このスキルのフォルダ（`SKILL.md` のあるフォルダ）の中。実行するときは、`${CLAUDE_SKILL_DIR}/scripts/doctor.ps1` のようにフルパスにする（`${CLAUDE_SKILL_DIR}` が展開されないエージェントでは、`SKILL.md` のあるフォルダのパスに読み替える）。
 - **作業フォルダはゴーストのルート**（`ghost/` と `shell/` が並んでいるフォルダ）にする。別の場所から呼ぶときは `-GhostRoot <フォルダ>`（環境変数 `UKADEV_GHOST_ROOT` でも指定できる）。ゴーストのルートは、作業フォルダとその親をさかのぼって `ghost/master/descript.txt` を探して決める。
-- SHIORI（YAYA / 里々）は、`ghost/master/descript.txt` の `shiori` と、`ghost/master` の dll から自動で判別する。`check-dic` `shiori` `lint` `update-shiori` は、判別した SHIORI のスクリプト（`scripts/shiori/yaya/` か `scripts/shiori/satori/`）に引数をそのまま渡す。オプションが SHIORI で違うので、詳しくは `references/yaya/commands.md` と `references/satori/commands.md`。
+- SHIORI（YAYA / 里々 / 華和梨）は、`ghost/master/descript.txt` の `shiori` と、`ghost/master` の dll から自動で判別する（華和梨は `shiori.dll` と `kawarirc.kis` があるもの）。`check-dic` `shiori` `lint` `update-shiori` は、判別した SHIORI のスクリプト（`scripts/shiori/yaya/`、`scripts/shiori/satori/`、`scripts/shiori/kawari/`）に引数をそのまま渡す。オプションが SHIORI で違うので、詳しくは `references/yaya/commands.md`、`references/satori/commands.md`、`references/kawari/commands.md`。
 
 | コマンド | 内容 | 終了コード |
 |---|---|---|
 | `<ps> scripts/doctor.ps1` | 開発環境を診断し、足りないもの（Git、SSP、チェック用ツール、`GHOST.md`、旧キットの残りなど）の用途と入手方法を表示する。ゴーストのルートと SHIORI、ホームフォルダも表示する。何も変更しない（`-Json` で機械向けの出力） | 0 必須はそろっている / 1 必須が足りない |
-| `<ps> scripts/setup.ps1` | tamacs.exe をホームフォルダにビルドする（Windows に入っている .NET Framework のコンパイラを使う。使うときにも自動でビルドされる）。YAYA で git clone したフォルダなら、システム辞書の submodule も取得する。`scripts/tools.json` にダウンロードするツールがあれば取得する（今は無い）。最後に doctor の結果を表示する | 0 成功 / 1 失敗、または必須が足りない |
+| `<ps> scripts/setup.ps1` | tamacs.exe をホームフォルダにビルドする（Windows に入っている .NET Framework のコンパイラを使う。使うときにも自動でビルドされる）。YAYA で git clone したフォルダなら、システム辞書の submodule も取得する。`scripts/tools.json` のツールのうち、すべてのゴースト用のものと、このゴーストの SHIORI 用のもの（今は華和梨の kosui.exe。[ukatech/kawari](https://github.com/ukatech/kawari/releases) の最新リリースから `bin/kawari/` に）をダウンロードする。`-Tool kosui` で指定、`-Force` で入れ直す。最後に doctor の結果を表示する | 0 成功 / 1 失敗、または必須が足りない |
 | `<ps> scripts/init-ghost.ps1` | ゴーストに無い入門用のファイル（`GHOST.md`、`AGENTS.md`、`CLAUDE.md`、`.narignore`、`.updateignore`、`.gitattributes`、`.editorconfig`）を、スキルの `templates/` から作る。あるファイルは変えない。`-NarignoreDevBlock` で既存の `.narignore` に開発用ファイルの除外（nar に入れない）を足し、`-Workflow` で `.github/workflows/auto_check.yml` も作る。`-DryRun` で確認のみ | 0 / 1 |
-| `<ps> scripts/check-dic.ps1` | tamacs.exe でこのゴーストの SHIORI（yaya.dll / satori.dll）に辞書を実際に読み込ませ、エラーを表示する（SSP は要らない）。YAYA と里々でオプションと、拾うエラーが違う | 0 OK / 1 エラー / 3 確かめられない（tamacs.exe をビルドできない、dll が古くて `Set_loghandler` が無い） |
+| `<ps> scripts/check-dic.ps1` | tamacs.exe でこのゴーストの SHIORI（yaya.dll / satori.dll）に辞書を実際に読み込ませ、エラーを表示する（SSP は要らない）。華和梨は kosui.exe の `--check`（安全モード）で読み込ませる。SHIORI ごとにオプションと、拾うエラーが違う | 0 OK / 1 エラー / 3 確かめられない（tamacs.exe をビルドできない、dll が古くて `Set_loghandler` が無い、華和梨で kosui.exe が無い） |
 | `<ps> scripts/check.ps1` | check-dic、check-shell、lint を順に実行する（里々では `-Run` を check-dic に渡す。里々の lint は satori.dll Mc206-1 以降で、それより古いと飛ばす） | 0 / 1 |
-| `<ps> scripts/shiori.ps1 ...` | SSP を使わずに、tamacs.exe でこのゴーストの SHIORI に SHIORI リクエストを 1 回送って、結果を表示する（`-Eval` は YAYA のコードや里々の文を評価する。`-Event <ID>` はイベントを送る）。呼ぶたびに辞書を読み込み直し、本物のフォルダのセーブデータや変数は変わらない | 0 / 1 失敗 / 2 処理中に SHIORI がエラーを出した / 3 tamacs.exe をビルドできない、dll が古い |
-| `<ps> scripts/lint.ps1` | 辞書を実行せずに調べる。YAYA: 未定義・未使用の変数と関数、条件式の中の代入を探す（参考情報）。里々: satori.dll の静的検査 ShioriLint（Mc206-1 以降）で、`＄` の行の書式、式の誤り、内蔵関数の引数の個数、閉じ忘れの `（`、どこにも無い `（名前）`、飛び先の書き間違いなどを `ファイル(行) : error: 内容` の形で表示する。オプションは SHIORI で違う | 0 / 1（里々: error があった。YAYA: 辞書の読み込みエラーなど）/ 3 確かめられない（tamacs.exe をビルドできない、里々が Mc206-1 より古い、YAYA の dll かシステム辞書が古い） |
-| `<ps> scripts/update-shiori.ps1` | このゴーストの SHIORI を最新に更新する（YAYA: yaya.dll とシステム辞書 yaya-dic、里々: satori.dll と satorite.exe）。更新の後で辞書チェックを行い、失敗したら元に戻す。`-DryRun` で確認のみ。オプションは SHIORI ごとに違う | 0 / 1 失敗 / 2（YAYA）システム辞書に手作業が要る |
+| `<ps> scripts/shiori.ps1 ...` | SSP を使わずに、tamacs.exe でこのゴーストの SHIORI に SHIORI リクエストを 1 回送って、結果を表示する（`-Eval` は YAYA のコード、里々の文、華和梨の文字列を評価する。`-Event <ID>` はイベントを送る）。呼ぶたびに辞書を読み込み直し、本物のフォルダのセーブデータや変数は変わらない | 0 / 1 失敗 / 2 処理中に SHIORI がエラーを出した / 3 tamacs.exe をビルドできない、dll が古い（華和梨は Phase 9 でない） |
+| `<ps> scripts/lint.ps1` | 辞書を実行せずに調べる。YAYA: 未定義・未使用の変数と関数、条件式の中の代入を探す（参考情報）。里々: satori.dll の静的検査 ShioriLint（Mc206-1 以降）で、`＄` の行の書式、式の誤り、内蔵関数の引数の個数、閉じ忘れの `（`、どこにも無い `（名前）`、飛び先の書き間違いなどを `ファイル(行) : error: 内容` の形で表示する。華和梨: kosui.exe の静的検査で、どこにも定義されていないエントリの参照、未知のコマンド名、`regex_*` の引用符の無い括弧などを `ファイル(行): warning K-W2001: 内容` の形で表示する。オプションは SHIORI で違う | 0 / 1（里々: error があった。YAYA: 辞書の読み込みエラーなど。華和梨: `-Strict` で指摘があった）/ 3 確かめられない（tamacs.exe をビルドできない、里々が Mc206-1 より古い、YAYA の dll かシステム辞書が古い、華和梨で kosui.exe が無い） |
+| `<ps> scripts/update-shiori.ps1` | このゴーストの SHIORI を最新に更新する（YAYA: yaya.dll とシステム辞書 yaya-dic、里々: satori.dll と satorite.exe、華和梨: shiori.dll）。更新の後で辞書チェックを行い、失敗したら元に戻す。`-DryRun` で確認のみ。オプションは SHIORI ごとに違う | 0 / 1 失敗 / 2（YAYA）システム辞書に手作業が要る |
 | `<ps> scripts/check-shell.ps1` | `ssp.exe --offline-dump` でシェルを検査する（Error / Warning / Notice）。問題の定義位置（`shell/master/surfaces.txt:Line=123`）も表示する | 0 OK / 1 Error あり / 3 SSP が見つからない |
 | `<ps> scripts/dump-surface.ps1 -Surface 0,5,10` | `ssp.exe --offline-dump` で、サーフェスを surfaces.txt の定義どおりに重ね合わせた PNG を作り、そのパスを表示する（ゴーストは起動しない）。画像を読めるエージェントが表情や重ね合わせを目で確かめるためのもの。`-Surface` は番号のほか `0-7` のような surfaces.txt の拡張形式も使える。`-Backlog` で顔のまわり（約 80×80）だけを切り抜き、`-Collision` で当たり判定（`collision` の形と名前）を描き込み、`-Sheet` で全部を番号付きで 1 枚に並べた `sheet.png` も作る。`-Animation <ID>`（番号か、surfaces.txt でアニメーションに付けた名前。1 つだけ）で、そのアニメーションを `\i[ID]` と同じように再生し、パターンが進むたびの姿を `surface0_0000.png`、`surface0_0001.png`… と連番で書く（まばたきや口パクをコマごとに見る。`-Sheet` と合わせると 1 枚に並ぶ）。`-Bind 'カテゴリ,パーツ;カテゴリ,パーツ,0'` で着せ替えの状態を指定する（パーツを空か `__ALL__` にするとカテゴリ全体。基準はシェルの descript.txt の既定値で、ユーザーが最後に着せ替えた状態ではない）。`-Animation` と `-Bind` は SSP 2.9.05 以降。無いアニメーションやパーツは SSP の Warning として表示され、`-Bind` のカテゴリやパーツが見つからなかったときは、その指定を `bind part not found` として表示する（その指定だけ着せ替えずに画像を作るので、着せ替えた姿と取り違えない）。`-Compare HEAD`（コミットやタグ、または別のフォルダにあるこのゴースト）で、同じサーフェスをそちらからも作り、1 枚ずつ画素単位で比べる。違う画素の数と範囲、そのうち差が 32 を超える（目で見て分かる）画素の数、最大の差を表示し、変わったサーフェスは `compare-<名前>.png` に、変わった範囲を拡大した前・後・違い（差が 32 を超える画素は赤、それ以下は黄）を書く。相手側の画像は出力先の `compare/` に置く。直した場所以外が 1 ドットも変わっていないことを確かめるのに使う。`-Scope` / `-Shell` で対象を変える。出力先は既定で一時フォルダの `ukagaka-developer/surfaces-<ハッシュ>/`（実行のたびに中の PNG を消す）。シェルのライセンスによっては改変した画像を配布できないので、ゴーストのフォルダやリポジトリには置かない | 0 全部出た / 1 1 枚も出ない、引数の誤り / 2 見つからない番号があった、`-Animation` のコマが 1 枚も出なかった、`-Bind` のカテゴリやパーツが見つからなかった、または SSP がエラーを記録した / 3 SSP が見つからない |
 | `<ps> scripts/image.ps1 <サブコマンド> ...` | 画像を調べる・編集する・比べる・拡大して見る（主にシェルの画像）。書き出す画像は必ず 32bit RGBA PNG。`info` は大きさ、ファイルの透過の持ち方、見えている範囲、`-At x,y,...` の画素の値と、シェルのフォルダにある画像なら SSP で何が透過になるか（`seriko.use_self_alpha`）を表示する。`edit <入力> -Out <出力> '<操作>' ...` は操作を順に当てて書き出す。`view` は拡大図（座標の目盛り付き、複数なら横に並べる）を書き、`diff` は 2 枚の違う範囲を表示し、`-Part` で違う画素だけをパーツとして切り出す。操作と使い方は下の「画像の編集」 | 0 / 1 失敗（引数の誤り、読めないファイル、未知の操作）/ 2 `edit` は書いたが、そのままでは SSP がアルファを使わない（隣に `.pna` がある、シェルに `seriko.use_self_alpha,1` が無い） |
@@ -41,12 +41,12 @@ SSP の場所は次の順に探す: `-SspPath` 引数 → 環境変数 `SSP_PATH
 スクリプトが作るもの（ビルドした tamacs.exe、ダウンロードしたツール、`local.json`、移行のバックアップ）は、スキルのフォルダでもゴーストのフォルダでもなく、**ホームフォルダ**に置く。スキルのフォルダはプラグインの更新で置き換わるので、書き込まない。ゴーストのフォルダには何も増えないので、nar やネットワーク更新に混ざらない。
 
 - 既定は `%LOCALAPPDATA%\ukagaka-developer`（環境変数 `UKADEV_HOME` で変えられる）。場所は `doctor.ps1` が表示する。
-- `bin/`: ビルドした `tamacs-<ハッシュ>.exe` など（ソースが変わると作り直す。消してよい）。
+- `bin/`: ビルドした `tamacs-<ハッシュ>.exe` など（ソースが変わると作り直す。消してよい）と、ダウンロードしたツール（華和梨の `bin/kawari/kosui.exe`。消したら `scripts/setup.ps1` で入れ直す）。
 - `local.json`: 各自の設定。今は SSP の場所だけ: `{"sspPath": "C:\\ssp\\ssp.exe"}`（JSON なので `\` を重ねる）。
-- `backups/`: `migrate-from-devkit.ps1 -Apply` が退避したファイル。
+- `backups/`: `migrate-from-devkit.ps1 -Apply` と、華和梨の `scripts/shiori/kawari/convert-utf8.ps1 -Apply` が退避したファイル。
 
 ## 関連
 
 - 画像の編集（`image.ps1` の操作の一覧）: `references/image-editing.md`
-- YAYA のコマンド: `references/yaya/commands.md`、里々のコマンド: `references/satori/commands.md`
+- YAYA のコマンド: `references/yaya/commands.md`、里々のコマンド: `references/satori/commands.md`、華和梨のコマンド: `references/kawari/commands.md`
 - ディレクトリ構成: `references/layout.md`

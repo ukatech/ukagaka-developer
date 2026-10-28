@@ -1,11 +1,13 @@
 <#
 .SYNOPSIS
-    Updates the SHIORI of the ghost: yaya.dll and the system dictionary (YAYA), or satori.dll (SATORI).
+    Updates the SHIORI of the ghost: yaya.dll and the system dictionary (YAYA), satori.dll (SATORI), or shiori.dll
+    (KAWARI).
 .DESCRIPTION
-    A front for the two SHIORI that the skill supports: it finds out whether the ghost runs on YAYA or SATORI
+    A front for the SHIORI that the skill supports: it finds out whether the ghost runs on YAYA, SATORI or KAWARI
     (the shiori key of ghost/master/descript.txt, or the dll in ghost/master) and runs
-    scripts/shiori/<yaya|satori>/update.ps1 with the same arguments. The options differ between the two; see the help
-    of those scripts (Get-Help scripts/shiori/yaya/update.ps1, Get-Help scripts/shiori/satori/update.ps1) and
+    scripts/shiori/<yaya|satori|kawari>/update.ps1 with the same arguments. The options differ between them; see the
+    help of those scripts (Get-Help scripts/shiori/yaya/update.ps1, Get-Help scripts/shiori/satori/update.ps1,
+    Get-Help scripts/shiori/kawari/update.ps1) and
     references/commands.md. -GhostRoot <folder> names the ghost root when the current folder is not inside it.
 .EXAMPLE
     powershell -NoProfile -ExecutionPolicy Bypass -File scripts/update-shiori.ps1

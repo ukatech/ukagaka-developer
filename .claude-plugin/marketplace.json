@@ -1,6 +1,6 @@
 {
   "name": "ukagaka-developer",
-  "description": "伺か（ukagaka）のゴースト開発を AI と進めるためのスキル。YAYA と里々（SATORI）に対応。",
+  "description": "伺か（ukagaka）のゴースト開発を AI と進めるためのスキル。YAYA、里々（SATORI）、華和梨（KAWARI）に対応。",
   "owner": {
     "name": "ukatech"
   },
@@ -8,7 +8,7 @@
     {
       "name": "ukagaka-developer",
       "source": "./",
-      "description": "伺か（ukagaka）のゴーストを、AI と一緒に作る・直す。YAYA と里々（SATORI）に対応。"
+      "description": "伺か（ukagaka）のゴーストを、AI と一緒に作る・直す。YAYA、里々（SATORI）、華和梨（KAWARI）に対応。"
     }
   ]
 }

@@ -8,7 +8,7 @@
 |---|---|
 | `GHOST.md` | **このゴーストに固有の情報**（キャラクター、サーフェス、ライセンス、辞書の構成）。ゴーストのもの。スキルの更新で変わらない |
 | `AGENTS.md`、`CLAUDE.md` | AI エージェント向けの短い案内（`GHOST.md` を読むこと、スキルを使うこと）。`scripts/init-ghost.ps1` が作る。`CLAUDE.md` は `@AGENTS.md` と `@GHOST.md` を読み込む |
-| `ghost/master/descript.txt` | ゴーストの基本情報（名前、作者、使う SHIORI の `shiori` など）。スキルはこの `shiori` と dll で YAYA / 里々を見分ける |
+| `ghost/master/descript.txt` | ゴーストの基本情報（名前、作者、使う SHIORI の `shiori` など）。スキルはこの `shiori` と dll で YAYA / 里々 / 華和梨を見分ける |
 | `shell/master/surfaces.txt` | サーフェス（表情、アニメーション、当たり判定）の定義 |
 | `shell/master/surfacetable.txt` | サーフェス番号と表情名の一覧（あるとき） |
 | `shell/master/descript.txt` | シェルの情報、メニューや吹き出し位置の設定 |
@@ -52,3 +52,18 @@
 実行時に作られるもの（編集もコミットもしない）: `ghost/master/satori_savedata.txt` と `satori_savebackup.txt`（変数の保存先。ゴーストの終了時に里々が書く。暗号化を有効にしたときは `.sat`）、`ghost/master/profile/`、`shell/master/profile/`。
 
 `scripts/check-dic.ps1` と `scripts/shiori.ps1` は、`ghost/master` の一時コピーで里々を動かすので、実行してもこのフォルダに `satori_savedata.txt` などは残らない。
+
+## 華和梨のゴースト
+
+| パス | 内容 |
+|---|---|
+| `ghost/master/kawarirc.kis` | **最初に読まれる辞書**。`=kis` 〜 `=end` の中に、ほかの辞書の `load`、SAORI の `saoriregist`、初期値などを書く。中身は普通の辞書 |
+| `ghost/master/*.txt` など | **ゴーストの辞書本体。主に編集するのはここ**。`kawarirc.kis` が `load` で読むファイルだけが辞書になる（名前と拡張子は自由。`dict-*.txt`、`ghost-*.txt` などが多い）。ミドルウェア（OpenKEEPS など）の辞書が入っていることもある（`GHOST.md`） |
+| `ghost/master/*.kaw` など | 暗号化した辞書（`kawari_encode2` で作る）。**直接編集しない**。元の辞書を直して暗号化し直す |
+| `ghost/master/shiori.dll` | SHIORI 本体（華和梨。スキルの対象は Phase 9）。`scripts/update-shiori.ps1` 以外で差し替えない。`shiori.dll` は SHIORI に共通の名前なので、スキルは `kawarirc.kis` があるものを華和梨とみなす |
+| `ghost/master/kawari.ini` | Phase 7 以前の設定ファイル。Phase 8 以降は読まれない（`load kawari.ini;` で辞書として読ませているゴーストはある）。`kawarirc.kis` が無く `kawari.ini` だけなら Phase 7 以前で、スキルの対象外 |
+| `ghost/master/saori/` など | SAORI の DLL（`saoriregist` で登録する。場所はゴーストしだい） |
+
+実行時に作られるもの（編集もコミットもしない）: 辞書が `save` / `savecrypt` / `textsave` で書くファイル（名前は辞書しだい。`GHOST.md` に書いておく）、`logfile` のログ、`ghost/master/profile/`、`shell/master/profile/`。
+
+`scripts/check-dic.ps1` と `scripts/lint.ps1` は kosui.exe の安全モードで調べるので、ファイルを書かない。`scripts/shiori.ps1` は `ghost/master` の一時コピーで `shiori.dll` を動かすので、セーブファイルなどは残らない。

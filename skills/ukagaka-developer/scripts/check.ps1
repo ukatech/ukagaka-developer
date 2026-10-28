@@ -2,8 +2,8 @@
 .SYNOPSIS
     Runs check-dic, check-shell and lint in order.
 .DESCRIPTION
-    check-dic and lint go to the ghost's SHIORI (YAYA or SATORI). The lint of SATORI is ShioriLint (satori.dll Mc206-1 or
-    later); with an older satori.dll the step is skipped.
+    check-dic and lint go to the ghost's SHIORI (YAYA, SATORI or KAWARI). The lint of SATORI is ShioriLint (satori.dll
+    Mc206-1 or later); with an older satori.dll the step is skipped. KAWARI uses kosui.exe for both (setup.ps1).
     Exit codes: 0 = all passed (steps whose tool is missing are reported as skipped),
     1 = a step failed, or a step was skipped while -RequireAll is given.
 .EXAMPLE

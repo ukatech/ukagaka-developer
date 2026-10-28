@@ -112,16 +112,20 @@ function Initialize-DevkitConsole {
     $script:DevkitRoot = $root
 }
 
-# --- SHIORI (YAYA, SATORI) ----------------------------------------------------------------
+# --- SHIORI (YAYA, SATORI, KAWARI) --------------------------------------------------------
 
 # Names of the SHIORI that the skill supports: folder under scripts/shiori/ -> dll name and display name.
+# Marker: a file that must sit next to the dll, for a dll name that other SHIORI use too (shiori.dll of KAWARI).
 $DevkitShioriTable = @(
-    [pscustomobject]@{ Id = 'yaya'; Dll = 'yaya.dll'; Name = 'YAYA' },
-    [pscustomobject]@{ Id = 'satori'; Dll = 'satori.dll'; Name = 'SATORI' }
+    [pscustomobject]@{ Id = 'yaya'; Dll = 'yaya.dll'; Name = 'YAYA'; Marker = $null },
+    [pscustomobject]@{ Id = 'satori'; Dll = 'satori.dll'; Name = 'SATORI'; Marker = $null },
+    [pscustomobject]@{ Id = 'kawari'; Dll = 'shiori.dll'; Name = 'KAWARI'; Marker = 'kawarirc.kis' }
 )
+# What the messages say when a ghost has none of them.
+$DevkitShioriSupported = 'YAYA (yaya.dll), SATORI (satori.dll) and KAWARI Phase 9 (shiori.dll with kawarirc.kis)'
 
-# Returns the id of the SHIORI of a ghost ('yaya' or 'satori'), or $null when it is neither. It follows the shiori key
-# of descript.txt, then the dll that exists in ghost/master.
+# Returns the id of the SHIORI of a ghost ('yaya', 'satori' or 'kawari'), or $null when it is none of them. It follows
+# the shiori key of descript.txt, then the dll (and its marker file) that exists in ghost/master.
 function Get-DevkitShiori([string]$GhostDir) {
     if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
     $key = Get-DevkitDescriptValue (Join-Path $GhostDir 'descript.txt') 'shiori'
@@ -131,7 +135,21 @@ function Get-DevkitShiori([string]$GhostDir) {
         }
     }
     foreach ($entry in $DevkitShioriTable) {
-        if (Test-Path -LiteralPath (Join-Path $GhostDir $entry.Dll) -PathType Leaf) { return $entry.Id }
+        if (-not (Test-Path -LiteralPath (Join-Path $GhostDir $entry.Dll) -PathType Leaf)) { continue }
+        if ($entry.Marker -and -not (Test-Path -LiteralPath (Join-Path $GhostDir $entry.Marker) -PathType Leaf)) { continue }
+        return $entry.Id
+    }
+    return $null
+}
+
+# Tells why a ghost has no supported SHIORI, when that can be told: KAWARI Phase 7 or older (kawari.ini without
+# kawarirc.kis), which Phase 9 does not read. Returns $null otherwise.
+function Get-DevkitUnsupportedShioriReason([string]$GhostDir) {
+    if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
+    if ((Test-Path -LiteralPath (Join-Path $GhostDir 'shiori.dll') -PathType Leaf) -and
+        (Test-Path -LiteralPath (Join-Path $GhostDir 'kawari.ini') -PathType Leaf) -and
+        -not (Test-Path -LiteralPath (Join-Path $GhostDir 'kawarirc.kis') -PathType Leaf)) {
+        return 'this looks like KAWARI Phase 7 or older (kawari.ini without kawarirc.kis), which is not supported: moving it to Phase 8/9 means rewriting the dictionaries (https://ukatech.shillest.net/kawari-docs/migration/)'
     }
     return $null
 }
@@ -150,13 +168,18 @@ function Get-DevkitShioriDir([string]$Id) {
 # script does it itself:  . (Join-Path (Get-DevkitShioriDir $id) 'lib.ps1')
 
 # Finds scripts/shiori/<id>/<Name>.ps1 for the ghost's SHIORI. Returns Path (or $null) and Code (the exit code to use
-# when there is no script). Used by the scripts that exist for both SHIORI (check-dic.ps1, shiori.ps1, lint.ps1,
+# when there is no script). Used by the scripts that exist for every SHIORI (check-dic.ps1, shiori.ps1, lint.ps1,
 # update-shiori.ps1). They then run it with "& $target.Path @args" themselves: only $args keeps the options such as -Run
 # as parameters when it is splatted.
 function Resolve-DevkitShioriScript([string]$Name, [string]$Label = $Name) {
     $id = Get-DevkitShiori
     if (-not $id) {
-        Write-Host "${Label}: FAILED - this ghost has neither ghost/master/yaya.dll nor ghost/master/satori.dll (and descript.txt has no shiori key for them). Only YAYA and SATORI are supported."
+        $reason = Get-DevkitUnsupportedShioriReason
+        if ($reason) {
+            Write-Host "${Label}: FAILED - $reason"
+        } else {
+            Write-Host "${Label}: FAILED - this ghost has no SHIORI that the skill supports in ghost/master (and descript.txt has no shiori key for them). Supported: $DevkitShioriSupported."
+        }
         return [pscustomobject]@{ Path = $null; Code = 1 }
     }
     $script = Join-Path (Get-DevkitShioriDir $id) "$Name.ps1"
@@ -223,11 +246,12 @@ function Invoke-DevkitGitHubApi([string]$Uri) {
 }
 
 # Looks up an asset in the latest release of a GitHub repository. Returns Tag, Url and Sha256 (from the digest that
-# GitHub publishes for each asset; $null when there is none).
+# GitHub publishes for each asset; $null when there is none). AssetName may have wildcards (kawari-*.zip) for assets
+# whose name holds the version.
 function Get-DevkitLatestReleaseAsset([string]$Repository, [string]$AssetName) {
     if ($Repository -notmatch '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$') { throw "invalid repository: $Repository" }
     $release = Invoke-DevkitGitHubApi "https://api.github.com/repos/$Repository/releases/latest"
-    $asset = @($release.assets | Where-Object { $_.name -eq $AssetName }) | Select-Object -First 1
+    $asset = @($release.assets | Where-Object { $_.name -like $AssetName }) | Select-Object -First 1
     if (-not $asset) { throw "$AssetName was not found in the latest release ($($release.tag_name)) of $Repository" }
     $sha256 = $null
     if ([string]$asset.digest -match '^sha256:([0-9a-fA-F]{64})$') { $sha256 = $matches[1].ToUpperInvariant() }
@@ -294,7 +318,8 @@ function Get-DevkitTamacsExpectedPath {
     return (Get-DevkitCsToolExpectedPath 'tamacs')
 }
 
-# Builds tamacs.exe from scripts/lib/tamacs.cs as a 32-bit console exe (yaya.dll and satori.dll are 32-bit).
+# Builds tamacs.exe from scripts/lib/tamacs.cs as a 32-bit console exe (yaya.dll, satori.dll and shiori.dll of KAWARI
+# are 32-bit).
 function Get-DevkitTamacs {
     return (Get-DevkitCsTool 'tamacs' @('/target:exe', '/platform:x86'))
 }

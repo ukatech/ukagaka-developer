@@ -7,7 +7,7 @@
 konnoyayame（YAYA）と POST_and_KOMAINU（里々）のそれぞれにあった「AI 開発キット」（ゴーストの中の `tools/`、`docs/agents/`、`AGENTS.md`）を、1 つのスキルに統合したものです。
 
 - **ゴーストの外に置く。** ゴーストのフォルダには何もコピーしない。ゴーストに置くのは、ゴーストのものである `GHOST.md`、短い `AGENTS.md` / `CLAUDE.md`、`.narignore` などだけ（`templates/`）。
-- **SHIORI に依存しない部分は 1 つにする。** SSP、シェル、nar、画像、SSTP は共通（`scripts/` 直下と `scripts/lib/`、共通の `references/`）。SHIORI に依存する部分は `scripts/shiori/<yaya|satori>/` と `references/<yaya|satori>/` に分ける。
+- **SHIORI に依存しない部分は 1 つにする。** SSP、シェル、nar、画像、SSTP は共通（`scripts/` 直下と `scripts/lib/`、共通の `references/`）。SHIORI に依存する部分は `scripts/shiori/<yaya|satori|kawari>/` と `references/<yaya|satori|kawari>/` に分ける。
 - **公式情報にリンクする。** 仕様の詳細（さくらスクリプト、YAYA の関数、里々の関数）は、複製せず、`ukagaka-doc` MCP と公式サイトに誘導する。複製した情報は古くなる。スキルに書くのは、手順、落とし穴、そして「どの資料を読むか」。
 - **更新を追える形にする。** `plugin.json` と `marketplace.json` に `version` を書かない（下の「更新」）。変わりやすい事実（dll の版、SSP の最新版）は文書に書かず、スクリプトが実行時に GitHub から調べる。
 
@@ -48,9 +48,9 @@ tests/check-repo.ps1                            リポジトリの検査（CI �
 
 ## 新しい SHIORI を足す
 
-YAYA と里々の 2 つだけに対応している。足すときは、次の形をそろえる（`tests/check-repo.ps1` が一部を確かめる）。
+YAYA、里々、華和梨の 3 つに対応している。足すときは、次の形をそろえる（`tests/check-repo.ps1` が一部を確かめる）。
 
-1. `scripts/lib/common.ps1` の `$DevkitShioriTable` に `Id`、`Dll`、`Name` を足す。
+1. `scripts/lib/common.ps1` の `$DevkitShioriTable` に `Id`、`Dll`、`Name`、`Marker` を足す（`Marker` は、華和梨の `shiori.dll` のように、ほかの SHIORI と同じ dll の名前を使うときに、横にあるはずのファイル。`kawarirc.kis`）。`$DevkitShioriSupported` の文も直す。
 2. `scripts/shiori/<id>/` に、`lib.ps1`（`Invoke-DevkitTamacs`、`Add-DevkitShioriDoctorItems`、`Invoke-DevkitShioriSetup`、`$DevkitTamacsPurpose`）、`check-dic.ps1`、`shiori.ps1`、`update.ps1`（あれば `lint.ps1`）。
 3. `templates/<id>/`（`GHOST.md`、`narignore`、`gitattributes`、`editorconfig`）。`scripts/lib/ghost-files.ps1` の `Get-DevkitStarterFiles` が使う。
 4. `references/<id>/`（`dictionary.md`、`check.md`、`commands.md`、`update.md`）。`SKILL.md` の「こう頼まれたら」と「資料」に行を足す。
@@ -90,6 +90,7 @@ YAYA と里々の 2 つだけに対応している。足すときは、次の形
 | `update-yaya.md` | `scripts/shiori/yaya/update.ps1` のシステム辞書（yaya-dic）の取得と置き換え、yaya.dll の版の選び方 |
 | `update-satori.md` | `scripts/shiori/satori/update.ps1` の satori.zip の取得と、版の選び方 |
 | `satori-check.md` | 里々の `check-dic` と `shiori` の実装（一時コピー、ShioriEcho、ログの読み方） |
+| `kawari.md` | 華和梨の実装（kosui `--check` と tamacs.exe `--no-loghandler` の使い分け、一時コピーに足すログとフック、`shiori.dll` の版、文字コード、`update.ps1`） |
 | `ignore.md` | `.narignore` / `.updateignore` の解釈（`scripts/lib/ignore.ps1`） |
 
 ## 確認
@@ -97,7 +98,7 @@ YAYA と里々の 2 つだけに対応している。足すときは、次の形
 スキルを変えたら、次を確かめる。
 
 1. `powershell -NoProfile -ExecutionPolicy Bypass -File tests/check-repo.ps1`: 構文（5.1 でも）、ASCII、`SKILL.md` と文書が指すパスの実在、`allowed-tools` のパス、SHIORI の部品の形。
-2. YAYA のゴースト（konnoyayame）と、里々のゴースト（POST_and_KOMAINU）の**コピー**で、`scripts/doctor.ps1`、`scripts/check.ps1`、`scripts/shiori.ps1 -Eval`、`scripts/update-shiori.ps1 -DryRun`、`scripts/build-nar.ps1 -ListOnly` が動く。Windows PowerShell 5.1 と `pwsh` の両方で。環境変数 `UKADEV_HOME` を一時フォルダにして、利用者のホームフォルダを汚さない。
+2. YAYA のゴースト（konnoyayame）と、里々のゴースト（POST_and_KOMAINU）と、華和梨のゴースト（Shift_JIS の辞書のもの、Phase 8 の `shiori.dll` のものも）の**コピー**で、`scripts/doctor.ps1`、`scripts/check.ps1`、`scripts/shiori.ps1 -Eval`、`scripts/update-shiori.ps1 -DryRun`、`scripts/build-nar.ps1 -ListOnly` が動く。Windows PowerShell 5.1 と `pwsh` の両方で。環境変数 `UKADEV_HOME` を一時フォルダにして、利用者のホームフォルダを汚さない。
 3. 移行のシナリオ（コピーの上で）:
    - 旧キットの入ったゴーストに `migrate-from-devkit.ps1`（ドライラン）→ `-Apply`。旧キットのファイルが消え、`AGENTS.md` / `CLAUDE.md` がスタブになり、`.narignore` が書き換わり、`doctor.ps1` の `old development kit` が ok になる。
    - `AGENTS.md` を手で変えたもの、`tools/` に作者のスクリプトがあるもの、`.claude/settings.json` に作者の許可があるもの、`tools/local.json` があるものでは、変えたファイルが残り、`settings.json` は編集に留まり、SSP の場所が `local.json` に移る。
