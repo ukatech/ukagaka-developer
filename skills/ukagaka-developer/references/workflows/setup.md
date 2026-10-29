@@ -11,7 +11,8 @@
 1. 診断する: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/doctor.ps1 -Json`
    - 各項目の `level` は `required`（ないとチェックが動かない）、`recommended`、`optional`。`purpose` が用途、`fix` が直し方。`shiori` が `yaya`、`satori`、`kawari` のどれか（SHIORI）、`home` がホームフォルダ。
    - `ghost` が ok でないときは、ゴーストのルート（`ghost/` と `shell/` が並んでいるフォルダ）で作業しているか確かめる。`-GhostRoot` でも指定できる。
-   - 里々で `SATORI build` が ok でないのは、descript.txt が UTF-8 なのに `satori.dll` が ACP 版（`Mc1XX`）のとき。更新するかは作者に確かめる（`references/satori/update.md`）。
+   - 里々で `SATORI build` が ok でないのは、descript.txt が UTF-8 なのに `satori.dll` が ACP 版（`Mc1XX`）のとき。更新するかは作者に確かめる（`references/satori/update.md`）。ok でも `(ACP build)` と出たときは、里々 2 への更新を強く推奨する（同じ文書の「ACP 版（里々 1）のゴーストでは、里々 2 への更新を強く推奨する」）。
+   - YAYA で `yaya.dll` が 500 系（`5, 74, …`）のときは、YAYA 6 への更新を強く推奨する（`references/yaya/update.md` の「500 系のゴーストでは、YAYA 6 への更新を強く推奨する」）。
    - 華和梨で `KAWARI Phase 9` が ok でないのは、`shiori.dll` が Phase 8 以前のとき（Phase 9 に差し替えれば辞書はそのまま動く。`references/kawari/update.md`）。`kosui.exe` が ok でなければ、手順 3 の `setup.ps1` が入れる。`UTF-8 dictionaries` が ok でなければ、辞書が Shift_JIS なので、編集の前に `references/kawari/dictionary.md` の「文字コード」に沿って、UTF-8 に変換するかを作者に聞く。
    - `old development kit` が ok でなければ、旧 AI 開発キットが残っている。`references/workflows/migrate-from-devkit.md` を提案する。
 2. 足りないアプリがあれば、用途を一言で説明して、入手を提案する。**インストールは必ず了承を得てから行う。**

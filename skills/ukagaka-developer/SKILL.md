@@ -111,8 +111,8 @@ templates/     ゴーストに足す入門用ファイル（GHOST.md など）�
    - SSTP: https://ssp.shillest.net/ukadoc/manual/spec_sstp.html
    - install.txt / .narignore / .updateignore / delete.txt: https://ssp.shillest.net/ukadoc/manual/descript_install.html
    - ネットワーク更新: https://ssp.shillest.net/ukadoc/manual/dev_update.html
-   - YAYA: yaya-docs https://yaya-shiori.github.io/yaya-docs/ （文法、システム関数、600 系の変更点）、本体 https://github.com/YAYA-shiori/yaya-shiori 、システム辞書 https://github.com/YAYA-shiori/yaya-dic
-   - 里々: satori-docs https://ukatech.shillest.net/satori-docs/ （文法、イベントと動作、内蔵関数、システム変数、ssu、エラーメッセージ。`ukatech.github.io/satori-docs/` はここに転送される）、本体 https://github.com/ukatech/satoriya-shiori
+   - YAYA: yaya-docs https://yaya-shiori.github.io/yaya-docs/ （文法、システム関数、ハッシュと入れ子 `grammar/12-hash`・`13-nesting`、正規表現 `grammar/14-regular-expressions`、600 系の変更点）、本体 https://github.com/YAYA-shiori/yaya-shiori 、システム辞書 https://github.com/YAYA-shiori/yaya-dic
+   - 里々: satori-docs https://ukatech.shillest.net/satori-docs/ （文法、イベントと動作、内蔵関数、システム変数、ssu と正規表現 `ssu/regex`、エラーメッセージ、里々 2 の紹介 `other/satori2-launch`。`ukatech.github.io/satori-docs/` はここに転送される）、本体 https://github.com/ukatech/satoriya-shiori
    - 華和梨: kawari-docs https://ukatech.shillest.net/kawari-docs/ （文法、SHIORI としての動作、KIS コマンド、幸水と `kosui --check`、移行ガイド、更新履歴。生の Markdown は `kis/set.md` のようにリポジトリと同じパスで読める。AI 向けの案内は `llms.txt`）、本体 https://github.com/ukatech/kawari
 3. それでもわからなければ Web 検索する。
 

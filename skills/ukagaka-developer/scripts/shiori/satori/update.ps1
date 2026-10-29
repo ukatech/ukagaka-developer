@@ -5,8 +5,8 @@
     The files come from satori.zip of https://github.com/ukatech/satoriya-shiori/releases (or -Tag). Releases are
     named McXYY-Z (for example Mc201-5): X = 1 is the ACP build (Shift_JIS dictionaries; Mc1XX), X = 2 is the Unicode
     build (UTF-8 dictionaries; Mc2XX). A release is taken from the build of the current satori.dll (-Variant takes the
-    other one): the highest version, pre-releases included, because the Unicode builds are published as
-    pre-releases for now (-StableOnly leaves them out). With no satori.dll, the Unicode build is used.
+    other one): the highest version, pre-releases included (-StableOnly leaves them out). With no satori.dll, the
+    Unicode build is used.
     Only files that the ghost already has are replaced: satori.dll (a ghost without it needs -Force), satorite.exe and
     saori/ssu.dll (the current satori.dll has ssu built in, so ghosts usually have no ssu.dll and it is not added).
     The version of each file (the "phase McXYY-Z" string inside satori.dll and satorite.exe; the file version of
@@ -91,6 +91,9 @@ try {
     $hasOld = Test-Path -LiteralPath $dll
     $oldVersion = if ($hasOld) { Get-DevkitSatoriVersion $dll } else { $null }
     Write-Host "current : $(if ($oldVersion) { $oldVersion.Text } else { '(no satori.dll)' })"
+    if ($oldVersion -and $oldVersion.Variant -eq 'ACP' -and $Variant -ine 'Unicode') {
+        Write-Host 'update-satori: NOTICE - only the Unicode build (Mc2XX) is still updated; the ACP build (Mc1XX) is not. Updating to the Unicode build is strongly recommended: -Variant Unicode (the dictionaries and the save data work as they are, but the save data cannot go back to the ACP build, so back them up first)'
+    }
     if (-not $hasOld -and -not $Force) {
         Write-Host "update-satori: FAILED - satori.dll was not found in $GhostDir (-Force adds it)"
         exit 1

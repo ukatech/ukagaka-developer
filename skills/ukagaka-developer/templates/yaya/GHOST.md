@@ -13,7 +13,7 @@
 - 作者（`craftman` / `craftmanw`）:
 - 配布先・ネットワーク更新の URL:
 - 元にしたテンプレートやゴースト:
-- SHIORI: YAYA（`yaya.dll`、バージョンと、500 系か 600 系か）。文字コード:
+- SHIORI: YAYA（`yaya.dll`、バージョン。サポート対象は YAYA 6 = 600 系だけで、500 系なら更新を強く推奨）。文字コード:
 - YAYA の仕様書: https://yaya-shiori.github.io/yaya-docs/ （文法と関数は推測で書かず、ここで確かめる）
 
 ## ライセンス

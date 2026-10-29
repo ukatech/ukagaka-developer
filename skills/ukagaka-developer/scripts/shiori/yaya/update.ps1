@@ -200,6 +200,9 @@ try {
         $newVersion = (Get-Item -LiteralPath $newDll).VersionInfo.FileVersion
         $newHash = (Get-FileHash -LiteralPath $newDll -Algorithm SHA256).Hash
         Write-Host "current : $oldVersion"
+        if ($oldParsed -and $oldParsed.Major -lt 6 -and $Series -ne 6) {
+            Write-Host 'update-yaya: NOTICE - only the 600 series (YAYA 6) is still updated; the 500 series is not. Updating to YAYA 6 is strongly recommended: -Series 6 (the dictionaries and the save file work as they are, but a save file written by the 600 series breaks in the 500 series, so back up yaya_variable.cfg first)'
+        }
         Write-Host "release : $(Get-YayaReleaseLabel $release) (file version $newVersion)"
         Write-Host "notes   : $($release.html_url)"
         if ($newerSeries) {

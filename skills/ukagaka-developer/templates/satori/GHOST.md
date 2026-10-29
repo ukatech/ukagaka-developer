@@ -13,7 +13,7 @@
 - 作者（`craftman` / `craftmanw`）:
 - 配布先・ネットワーク更新の URL（`dic06_String.txt` の `＠homeurl` など）:
 - 元にしたテンプレートやゴースト: （例: 「ポストと狛犬」（櫛ヶ浜やぎ、里々のサンプルゴースト））
-- SHIORI: 里々（`satori.dll`、バージョンと、Unicode 版か ACP 版か）。文字コード:
+- SHIORI: 里々（`satori.dll`、バージョン。サポート対象は里々 2 = Unicode 版だけで、ACP 版（里々 1）なら更新を強く推奨）。文字コード:
 - 里々の仕様書: https://github.com/ukatech/satori-docs （構文は推測で書かず、ここで確かめる）
 
 ## ライセンス

@@ -2,8 +2,10 @@
 
 - `scripts/shiori/satori/update.ps1` の `satori.zip`（[ukatech/satoriya-shiori](https://github.com/ukatech/satoriya-shiori/releases)）:
   - 中身は `satori.dll`、`satorite.exe`、`saori\ssu.dll`。里々の `CLAUDE.md`（リリース）の手順で、`satoriya\make_satori.ps1` が作る。ssu は `satori.dll` に内蔵されたので、ゴーストに `saori/ssu.dll` が無ければ足さない（Mc201-5 で、ゴースト側の `ssu.dll` と `satori_conf.txt` の ssu の行は不要になった）。
-  - バージョン記号は `McXYY-Z`。X = 1 が ACP 版（master ブランチ、`Mc1XX`）、X = 2 が Unicode 版（unicode ブランチ、`Mc2XX`）。タグ名がそのまま記号（`Mc201-5`）で、リリースのタイトルは同じか `Mc172-1A` のような名前になることがある（タグを見る）。**Unicode 版は当面 pre-release として出るので、pre-release のフラグでは選ばず、系統（X）で選ぶ。** 正式版（`Latest`）は ACP 版（今は `Mc172-3`）。
-  - 一覧（`releases?per_page=100`）から `satori.zip` があるものを集め、手元の `satori.dll` と同じ系統で、`(XYY, Z)` がいちばん大きいもの（同じなら日付の新しいもの）を取る。`releases/latest` を使うと、いつでも ACP 版になる。`-StableOnly` は pre-release を除くので、Unicode 版のゴーストでは「新しい版が無い」になりうる。
+  - バージョン記号は `McXYY-Z`。X = 1 が ACP 版（master ブランチ、`Mc1XX`）、X = 2 が Unicode 版（unicode ブランチ、`Mc2XX`）。タグ名がそのまま記号（`Mc201-5`）で、リリースのタイトルは同じか `Mc172-1A` のような名前になることがある（タグを見る）。**系統（X）で選ぶ。** Unicode 版（Mc2XX）が現行の正式版で、ACP 版（最後は `Mc172-3`）は古い系統。
+  - 一覧（`releases?per_page=100`）から `satori.zip` があるものを集め、手元の `satori.dll` と同じ系統で、`(XYY, Z)` がいちばん大きいもの（同じなら日付の新しいもの）を取る。`releases/latest` は系統を見ないので、ACP 版のゴーストにも Unicode 版を選んでしまう。`-StableOnly` は、念のための pre-release 除外で、系統は変えない。
+  - 里々 1（ACP 版）のゴーストは、作者に Unicode 版への更新を強く推奨する（`references/satori/update.md`。更新されているのは Mc2XX だけで、Mc1XX は致命的な問題のバックポートのみ）。系統は `-Variant` で切り替えるときだけ変わる。
+  - 手元が ACP 版で `-Variant Unicode` が無いときは、`current` の後に `NOTICE` の行（Unicode 版への更新の強い推奨）を出す。選ぶ版は変えない。
   - 版は DLL の中の UTF-16 の `phase McXYY-Z`（`gSatoriVersion`）と、ファイルバージョン `X, XYY, Z, 1` の両方から読める（`Get-DevkitSatoriVersion`）。`ssu.dll` には `phase` の文字列が無いので、ファイルバージョンから作る。比べるのは `(XYY, Z)`。
   - ダウンロードは、GitHub がアセットに付ける `digest`（`sha256:…`）と照合する。
   - ghost/master にあるファイルだけを置き換える。`satori.dll` が無いときは `-Force` を要求する（誤って別のフォルダに入れないため）。
