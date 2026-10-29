@@ -143,6 +143,8 @@ Claude Code は、スクリプトを実行するたびに許可を確認しま�
 | Claude Code のプラグイン | `claude plugin marketplace update ukagaka-developer` のあと `claude plugin update ukagaka-developer`。マーケットプレイスの自動更新を有効にしていれば、起動後に自動で更新されます。更新したら Claude Code を再起動 |
 | フォルダのコピー | AI に「スキルを更新して」と頼む（`scripts/update-skill.ps1`）。または ZIP を落とし直して置き換える |
 
+**プラグインを自動で更新するには**: Claude Code で `/plugin` を開き、**Marketplaces** タブで `ukagaka-developer` を選んで、**Enable auto-update** を選びます（外部のマーケットプレイスは、初期状態ではオフです）。次の起動から、バックグラウンドで GitHub の最新に更新されます。動いているセッションは読み込み済みの版のままで、`Plugin updated: ukagaka-developer · Run /reload-plugins to apply` と出たら `/reload-plugins` か再起動で反映します。
+
 このスキルには**バージョン番号がありません**。更新は GitHub の最新のコミットを追います。変更内容は、コミット履歴で見られます。`yaya.dll` や `satori.dll`、華和梨の `shiori.dll` と kosui.exe の版は、スキルに書かれていません。「YAYA を更新して」「里々を更新して」「華和梨を更新して」で、そのときの最新リリースを取ります。
 
 ## 旧 AI 開発キットからの移行

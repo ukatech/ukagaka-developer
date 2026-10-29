@@ -15,6 +15,8 @@
 | Claude Code のプラグイン | `claude plugin update ukagaka-developer`（`--scope` は入れたときと同じ）。マーケットプレイスの最新を取るには、先に `claude plugin marketplace update ukagaka-developer`。更新したら Claude Code を再起動するか `/reload-plugins`。マーケットプレイスの自動更新を有効にしていれば、起動後にバックグラウンドで更新される |
 | フォルダのコピー（`.agents/skills/ukagaka-developer/` など） | `scripts/update-skill.ps1`。GitHub の最新を取って、そのフォルダを置き換える |
 
+プラグインを自動で更新する設定は、作者の Claude Code の画面でしかできない（エージェントは設定を変えない）。作者に聞かれたら、次を伝える: `/plugin` を開き、**Marketplaces** タブで `ukagaka-developer` を選び、**Enable auto-update** を選ぶ（外部のマーケットプレイスは、初期状態ではオフ）。次の起動から、バックグラウンドで GitHub の最新に更新される。動いているセッションは読み込み済みの版のままで、`Plugin updated: ukagaka-developer · Run /reload-plugins to apply` と出たら `/reload-plugins` か再起動で反映する。
+
 どちらで入れたか分からなければ、スキルのフォルダのパスで判断する。`.claude/plugins/cache/` の下ならプラグイン、`.agents/skills/` や `.claude/skills/` の下ならコピー。
 
 ## コピーで入れたスキルの更新
