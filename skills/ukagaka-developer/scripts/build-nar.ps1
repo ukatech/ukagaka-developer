@@ -131,24 +131,12 @@ foreach ($relative in ($files | Sort-Object -Unique)) {
 # With .narinclude, SSP decides what goes in, so the list above says nothing about the nar.
 if (-not $hasNarInclude) {
     $shioriId = Get-DevkitShiori
-    if ($shioriId -eq 'yaya') {
-        . (Join-Path (Get-DevkitShioriDir 'yaya') 'lib.ps1')
-        if (-not ($included | Where-Object { Test-DevkitSystemDicPath $_ 'ghost/master/' })) {
-            $systemDicNames = ($DevkitSystemDicDirs | ForEach-Object { "ghost/master/$_" }) -join ' or '
-            Write-Host "build-nar: FAILED - the system dictionary ($systemDicNames) is empty. Run: git submodule update --init"
+    if ($shioriId) {
+        . (Join-Path (Get-DevkitShioriDir $shioriId) 'lib.ps1')
+        $narProblem = Get-DevkitShioriNarProblem $included.ToArray()
+        if ($narProblem) {
+            Write-Host "build-nar: FAILED - $narProblem"
             exit 1
-        }
-    } elseif ($shioriId -eq 'satori') {
-        if ($included -notcontains 'ghost/master/satori.dll') {
-            Write-Host 'build-nar: FAILED - ghost/master/satori.dll is missing or excluded (SATORI would not load in the nar)'
-            exit 1
-        }
-    } elseif ($shioriId -eq 'kawari') {
-        foreach ($required in @('ghost/master/shiori.dll', 'ghost/master/kawarirc.kis')) {
-            if ($included -notcontains $required) {
-                Write-Host "build-nar: FAILED - $required is missing or excluded (KAWARI would not load in the nar)"
-                exit 1
-            }
         }
     }
     if ($included -notcontains 'install.txt') {

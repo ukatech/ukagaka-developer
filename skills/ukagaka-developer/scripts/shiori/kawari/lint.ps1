@@ -36,17 +36,11 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-$GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
-if (-not (Test-Path -LiteralPath (Join-Path $GhostDir 'kawarirc.kis'))) {
-    Write-Host "lint: FAILED - kawarirc.kis was not found in $GhostDir"
-    exit 1
-}
-$kosui = Get-DevkitKosui
-if (-not $kosui.Path) {
-    Write-Host "lint: SKIPPED - $($kosui.Error)"
-    exit 3
-}
+$ghost = Resolve-DevkitShioriGhostDir 'lint' $GhostDir 'kawarirc.kis'
+if (-not $ghost.Ok) { exit $ghost.Code }
+$GhostDir = $ghost.GhostDir
+$kosui = Get-DevkitShioriTool 'lint' 'kosui'
+if (-not $kosui.Path) { exit 3 }
 
 $result = Invoke-DevkitKosuiCheck -GhostDir $GhostDir -TimeoutSeconds $TimeoutSeconds
 if ($result.TimedOut) {

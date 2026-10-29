@@ -401,6 +401,20 @@ function Get-DevkitSatoriTalkNames([string]$GhostDir, [switch]$Skipped) {
     return $result.ToArray()
 }
 
+# --- build-nar and check ------------------------------------------------------------------
+
+# Tells why the nar of this ghost would not load, from the list of the files it will hold (paths relative to the ghost
+# root). Returns $null when it looks fine. Used by build-nar.ps1.
+function Get-DevkitShioriNarProblem([string[]]$Included) {
+    if ($Included -notcontains 'ghost/master/satori.dll') {
+        return 'ghost/master/satori.dll is missing or excluded (SATORI would not load in the nar)'
+    }
+    return $null
+}
+
+# The option of check-dic.ps1 that check.ps1 passes on with its own -Run (also run every sentence).
+$DevkitCheckDicRunArgument = '-Run'
+
 # --- doctor and setup ---------------------------------------------------------------------
 
 # What the doctor tells tamacs.exe is used for.

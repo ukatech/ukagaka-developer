@@ -24,6 +24,7 @@ $ErrorActionPreference = 'Stop'
 Initialize-DevkitConsole
 
 $shioriId = Get-DevkitShiori
+if ($shioriId) { . (Join-Path (Get-DevkitShioriDir $shioriId) 'lib.ps1') }
 $steps = New-Object System.Collections.Generic.List[string]
 $steps.Add('check-dic')
 if (-not $SkipShell) { $steps.Add('check-shell') }
@@ -37,7 +38,7 @@ foreach ($step in $steps) {
     Write-Host ''
     Write-Host "==== $step ===="
     $stepArgs = @('-GhostRoot', $DevkitRoot)
-    if ($Run -and $step -eq 'check-dic' -and $shioriId -eq 'satori') { $stepArgs += '-Run' }
+    if ($Run -and $step -eq 'check-dic' -and $DevkitCheckDicRunArgument) { $stepArgs += $DevkitCheckDicRunArgument }
     & $powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "$step.ps1") @stepArgs
     $code = $LASTEXITCODE
     if ($code -eq 3) { $skipped += $step } elseif ($code -ne 0) { $failed += $step }

@@ -51,8 +51,9 @@ tests/check-repo.ps1                            リポジトリの検査（CI �
 YAYA、里々、華和梨の 3 つに対応している。足すときは、次の形をそろえる（`tests/check-repo.ps1` が一部を確かめる）。
 
 1. `scripts/lib/common.ps1` の `$DevkitShioriTable` に `Id`、`Dll`、`Name`、`Marker` を足す（`Marker` は、華和梨の `shiori.dll` のように、ほかの SHIORI と同じ dll の名前を使うときに、横にあるはずのファイル。`kawarirc.kis`）。`$DevkitShioriSupported` の文も直す。
-2. `scripts/shiori/<id>/` に、`lib.ps1`（`Invoke-DevkitTamacs`、`Add-DevkitShioriDoctorItems`、`Invoke-DevkitShioriSetup`、`$DevkitTamacsPurpose`）、`check-dic.ps1`、`shiori.ps1`、`update.ps1`（あれば `lint.ps1`）。
-3. `templates/<id>/`（`GHOST.md`、`narignore`、`gitattributes`、`editorconfig`）。`scripts/lib/ghost-files.ps1` の `Get-DevkitStarterFiles` が使う。
+2. `scripts/shiori/<id>/` に、`lib.ps1`（`Invoke-DevkitTamacs`、`Add-DevkitShioriDoctorItems`、`Invoke-DevkitShioriSetup`、`Get-DevkitShioriNarProblem`、`$DevkitTamacsPurpose`。`check.ps1` に `-Run` を渡したいときは `$DevkitCheckDicRunArgument` も）、`check-dic.ps1`、`shiori.ps1`、`update.ps1`（あれば `lint.ps1`）。
+   - 各スクリプトの始まり（`GhostDir` の解決、dll の確認、tamacs.exe / kosui.exe の確認）は `scripts/lib/shiori-common.ps1` の `Resolve-DevkitShioriGhostDir` と `Get-DevkitShioriTool`、SHIORI リクエストの組み立ては `New-DevkitShioriRequest` を使う。`update.ps1` の作業フォルダ、ダウンロードと SHA256 の確認、zip の展開、置換と巻き戻しは `scripts/lib/update-common.ps1`（`New-DevkitWorkDir`、`Save-DevkitReleaseAsset`、`Expand-DevkitZipFile`、`Install-DevkitFiles`、`Invoke-DevkitDictionaryCheck`）を使う。SHIORI ごとに違うのは、`-Eval` の意味、読み込みに使う道具、版の体系、ログのパターンだけにする。
+3. `templates/<id>/`（`GHOST.md`、`narignore`、`gitattributes`、`editorconfig`）。`scripts/lib/ghost-files.ps1` の `Get-DevkitStarterFiles` が使う。`GHOST.md` の見出しは、ほかの SHIORI のものと同じにする（`tests/check-repo.ps1` が確かめる）。
 4. `references/<id>/`（`dictionary.md`、`check.md`、`commands.md`、`update.md`）。`SKILL.md` の「こう頼まれたら」と「資料」に行を足す。
 5. `agents/ukagaka-researcher.md` と `SKILL.md` の「仕様を調べる」に、そのSHIORIの公式資料を足す。
 

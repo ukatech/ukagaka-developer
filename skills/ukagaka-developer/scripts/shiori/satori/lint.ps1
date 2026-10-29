@@ -50,19 +50,12 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-$GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
+$ghost = Resolve-DevkitShioriGhostDir 'lint' $GhostDir 'satori.dll'
+if (-not $ghost.Ok) { exit $ghost.Code }
+$GhostDir = $ghost.GhostDir
 $dll = Join-Path $GhostDir 'satori.dll'
-if (-not (Test-Path -LiteralPath $dll)) {
-    Write-Host "lint: FAILED - satori.dll was not found in $GhostDir"
-    exit 1
-}
-
-$tamacs = Get-DevkitTamacs
-if (-not $tamacs.Path) {
-    Write-Host "lint: SKIPPED - $($tamacs.Error)"
-    exit 3
-}
+$tamacs = Get-DevkitShioriTool 'lint'
+if (-not $tamacs.Path) { exit 3 }
 
 # An older SATORI does not know the ID: it expands "ShioriLint" as a name and answers 200 or 204 either way, which cannot be
 # told from "no problems". So the version decides.
@@ -74,13 +67,9 @@ if ($version.Number -and $version.Number -lt $minimum) {
 }
 
 # Paths in the messages are relative to ghost/master; show them relative to the ghost root.
-$prefix = ''
-$rootWithSeparator = $DevkitRoot + [IO.Path]::DirectorySeparatorChar
-if ($GhostDir.StartsWith($rootWithSeparator, [StringComparison]::OrdinalIgnoreCase)) {
-    $prefix = $GhostDir.Substring($rootWithSeparator.Length).Replace('\', '/') + '/'
-}
+$prefix = $ghost.Prefix
 
-$requestText = "GET SHIORI/3.0`nCharset: UTF-8`nSender: SSP`nSecurityLevel: local`nID: ShioriLint"
+$requestText = New-DevkitShioriRequest -Id 'ShioriLint' -Label 'lint'
 $result = Invoke-DevkitTamacs -GhostDir $GhostDir -Arguments @('-r') -InputText $requestText -TimeoutSeconds $TimeoutSeconds
 if ($result.TimedOut) {
     Write-Host "lint: FAILED - tamacs.exe did not finish within $TimeoutSeconds seconds"
@@ -114,7 +103,7 @@ if ($response -match '(?m)^ErrorDescription: ?(.*)$') { $descriptions = @($match
 
 # The response also carries the ordinary error notices of SATORI (a dictionary that does not load, and so on), which
 # have no "file(line)" and may be critical; they count as errors. Their paths are those of the temporary copy.
-$base = Split-Path (Split-Path $GhostDir -Parent) -Parent
+$base = $ghost.Base
 $counts = @{ error = 0; warning = 0; notice = 0; info = 0 }
 for ($i = 0; $i -lt $descriptions.Count; $i++) {
     $level = if ($i -lt $levels.Count) { $levels[$i].Trim() } else { 'error' }

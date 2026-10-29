@@ -190,6 +190,9 @@ function Resolve-DevkitShioriScript([string]$Name, [string]$Label = $Name) {
     return [pscustomobject]@{ Path = $script; Code = 0 }
 }
 
+# The start of a script of a SHIORI and the SHIORI request, shared by shiori/<id>/shiori.ps1, check-dic.ps1 and lint.ps1.
+. (Join-Path $DevkitLibDir 'shiori-common.ps1')
+
 # --- tools that are downloaded or built ---------------------------------------------------
 
 function Get-DevkitToolManifest {

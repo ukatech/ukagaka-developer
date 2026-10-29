@@ -51,9 +51,8 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../../lib/common.ps1')
 . (Join-Path $PSScriptRoot 'lib.ps1')
+. (Join-Path $PSScriptRoot '../../lib/update-common.ps1')
 Initialize-DevkitConsole
-Add-Type -AssemblyName System.IO.Compression
-Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 if ($Tag -and $Variant) {
     Write-Host 'update-satori: FAILED - -Tag already chooses the release; do not give -Variant with it'
@@ -74,14 +73,6 @@ $parts = @(
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 $ProgressPreference = 'SilentlyContinue'
 
-# Runs check-dic on the ghost and returns its exit code (1 = errors, 3 = not checked: tamacs.exe is not available).
-function Invoke-DictionaryCheck {
-    $powershell = (Get-Process -Id $PID).Path
-    $ErrorActionPreference = 'Continue'
-    & $powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-dic.ps1') -GhostDir $GhostDir -GhostRoot $DevkitRoot | Out-Host
-    return $LASTEXITCODE
-}
-
 # Version of a release tag such as Mc201-5 (or Mc172-1A): a [version] of (XYY, Z) and the build, or $null.
 function Get-SatoriTagInfo([string]$TagName) {
     if ($TagName -match '^Mc(\d)(\d{2})-(\d+)') {
@@ -95,8 +86,7 @@ function Get-ReleaseLabel($Release) {
 }
 
 $exitCode = 0
-$work = Join-Path ([IO.Path]::GetTempPath()) ('devkit-satori-update-' + [guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $work | Out-Null
+$work = New-DevkitWorkDir 'satori-update'
 try {
     $hasOld = Test-Path -LiteralPath $dll
     $oldVersion = if ($hasOld) { Get-DevkitSatoriVersion $dll } else { $null }
@@ -109,7 +99,6 @@ try {
     # --- the release ---------------------------------------------------------------------------
     $release = $null
     $zipPath = $null
-    $expectedHash = $null
     if ($ZipPath) {
         $zipPath = (Resolve-DevkitFullPath $ZipPath)
         if (-not (Test-Path -LiteralPath $zipPath -PathType Leaf)) { throw "-ZipPath was not found: $zipPath" }
@@ -137,33 +126,18 @@ try {
         }
         $asset = @($release.assets | Where-Object { $_.name -eq 'satori.zip' }) | Select-Object -First 1
         if (-not $asset) { throw "satori.zip was not found in release $($release.tag_name)" }
-        if ([string]$asset.digest -match '^sha256:([0-9a-fA-F]{64})$') { $expectedHash = $matches[1].ToUpperInvariant() }
         Write-Host "release : $(Get-ReleaseLabel $release)"
         Write-Host "notes   : $($release.html_url)"
         $zipPath = Join-Path $work 'satori.zip'
-        Invoke-WebRequest -UseBasicParsing -Uri $asset.browser_download_url -OutFile $zipPath
-        $hash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash
-        if ($expectedHash -and $hash -ne $expectedHash) { throw "SHA256 of satori.zip does not match the release (expected $expectedHash, got $hash)" }
+        Save-DevkitReleaseAsset $asset $zipPath
     }
 
     # --- unpack and compare ------------------------------------------------------------------
     $unpacked = Join-Path $work 'unpacked'
     New-Item -ItemType Directory -Path $unpacked | Out-Null
-    $zip = [IO.Compression.ZipFile]::OpenRead($zipPath)
-    try {
-        foreach ($entry in $zip.Entries) {
-            $name = $entry.FullName.Replace('\', '/')
-            foreach ($part in $parts) {
-                if ($name -ieq $part.Zip -or $name.EndsWith('/' + $part.Zip, [StringComparison]::OrdinalIgnoreCase)) {
-                    $target = Join-Path $unpacked $part.Path.Replace('/', '\')
-                    New-Item -ItemType Directory -Force -Path (Split-Path $target -Parent) | Out-Null
-                    [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $target, $true)
-                }
-            }
-        }
-    } finally {
-        $zip.Dispose()
-    }
+    $zipFiles = @{}
+    foreach ($part in $parts) { $zipFiles[$part.Zip] = Join-Path $unpacked $part.Path.Replace('/', '\') }
+    [void](Expand-DevkitZipFile $zipPath $zipFiles)
     $newDll = Join-Path $unpacked 'satori.dll'
     if (-not (Test-Path -LiteralPath $newDll)) { throw 'satori.dll is not in satori.zip' }
     $newVersion = Get-DevkitSatoriVersion $newDll
@@ -203,35 +177,16 @@ try {
         Write-Host 'update-satori: dry run, nothing changed'
     } else {
         # --- apply -------------------------------------------------------------------------
-        $done = New-Object System.Collections.Generic.List[object]
-        $failed = $false
-        foreach ($item in $todo) {
-            $backup = Join-Path $work ('old-' + ($item.Part.Path -replace '[\\/]', '_'))
-            try {
-                if ($item.Exists) { Copy-Item -LiteralPath $item.Old -Destination $backup -Force }
-                New-Item -ItemType Directory -Force -Path (Split-Path $item.Old -Parent) | Out-Null
-                Copy-Item -LiteralPath $item.New -Destination $item.Old -Force
-                $done.Add([pscustomobject]@{ Item = $item; Backup = $backup })
-            } catch {
-                Write-Host "update-satori: could not replace ghost/master/$($item.Part.Path) ($($_.Exception.Message)). If SSP is running this ghost, close the ghost and retry."
-                $failed = $true
-                break
-            }
+        $check = if ($SkipCheck) { $null } else { { param($Dir) Invoke-DevkitDictionaryCheck 'satori' $Dir } }
+        $install = Install-DevkitFiles -Items $todo -WorkDir $work -Check $check -CheckArgument $GhostDir
+        if ($install.Status -eq 'copy-failed') {
+            Write-Host "update-satori: could not replace ghost/master/$($install.Failed.Part.Path) ($($install.Error)). If SSP is running this ghost, close the ghost and retry."
+        } elseif ($install.Status -eq 'check-failed') {
+            Write-Host 'update-satori: the dictionary check failed with the new files; putting the old ones back'
+        } elseif ($install.CheckCode -eq 3) {
+            Write-Host 'update-satori: WARNING - the dictionaries could not be checked (tamacs.exe), so the new files were not verified'
         }
-        if (-not $failed -and -not $SkipCheck) {
-            $checkCode = Invoke-DictionaryCheck
-            if ($checkCode -eq 1) {
-                Write-Host 'update-satori: the dictionary check failed with the new files; putting the old ones back'
-                $failed = $true
-            } elseif ($checkCode -eq 3) {
-                Write-Host 'update-satori: WARNING - the dictionaries could not be checked (tamacs.exe), so the new files were not verified'
-            }
-        }
-        if ($failed) {
-            foreach ($entry in $done) {
-                if ($entry.Item.Exists) { Copy-Item -LiteralPath $entry.Backup -Destination $entry.Item.Old -Force }
-                else { Remove-Item -LiteralPath $entry.Item.Old -Force -ErrorAction SilentlyContinue }
-            }
+        if ($install.Status -ne 'replaced') {
             Write-Host 'update-satori: restored the previous files'
             $exitCode = 1
         } else {

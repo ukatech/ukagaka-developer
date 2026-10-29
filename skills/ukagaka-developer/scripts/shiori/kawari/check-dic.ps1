@@ -50,18 +50,11 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-$GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
-if (-not (Test-Path -LiteralPath (Join-Path $GhostDir 'kawarirc.kis'))) {
-    Write-Host "check-dic: FAILED - kawarirc.kis was not found in $GhostDir"
-    exit 1
-}
-
-$kosui = Get-DevkitKosui
-if (-not $kosui.Path) {
-    Write-Host "check-dic: SKIPPED - $($kosui.Error)"
-    exit 3
-}
+$ghost = Resolve-DevkitShioriGhostDir 'check-dic' $GhostDir 'kawarirc.kis'
+if (-not $ghost.Ok) { exit $ghost.Code }
+$GhostDir = $ghost.GhostDir
+$kosui = Get-DevkitShioriTool 'check-dic' 'kosui'
+if (-not $kosui.Path) { exit 3 }
 $dllVersion = Get-DevkitKawariVersion (Join-Path $GhostDir 'shiori.dll')
 $kosuiVersion = Get-DevkitKawariVersion $kosui.Path
 Write-Host "check-dic: kosui.exe $($kosuiVersion.Text) (the ghost's shiori.dll: $(if ($dllVersion) { $dllVersion.Text } else { 'none' }))"

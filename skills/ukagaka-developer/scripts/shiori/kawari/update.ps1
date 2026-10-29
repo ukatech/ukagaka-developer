@@ -42,9 +42,8 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../../lib/common.ps1')
 . (Join-Path $PSScriptRoot 'lib.ps1')
+. (Join-Path $PSScriptRoot '../../lib/update-common.ps1')
 Initialize-DevkitConsole
-Add-Type -AssemblyName System.IO.Compression
-Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
 $GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
@@ -53,14 +52,6 @@ $repository = 'ukatech/kawari'
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 $ProgressPreference = 'SilentlyContinue'
-
-# Runs check-dic on the ghost and returns its exit code (1 = errors, 3 = not checked: kosui.exe is not available).
-function Invoke-DictionaryCheck {
-    $powershell = (Get-Process -Id $PID).Path
-    $ErrorActionPreference = 'Continue'
-    & $powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-dic.ps1') -GhostDir $GhostDir -GhostRoot $DevkitRoot | Out-Host
-    return $LASTEXITCODE
-}
 
 # Loads a shiori.dll in an empty folder (with a kawarirc.kis that defines nothing, so no code of the ghost runs: no
 # =kis zone, no SAORI) and asks for the "version" resource, which KAWARI answers by itself. Returns $true when it
@@ -75,7 +66,7 @@ function Test-NewShiori([string]$Dll) {
     New-Item -ItemType Directory -Force -Path $probe | Out-Null
     Copy-Item -LiteralPath $Dll -Destination (Join-Path $probe 'shiori.dll') -Force
     [IO.File]::WriteAllText((Join-Path $probe 'kawarirc.kis'), "# probe of update-shiori.ps1`n", $DevkitUtf8)
-    $request = @('GET SHIORI/3.0', 'Charset: UTF-8', 'Sender: SSP', 'SecurityLevel: local', 'ID: version') -join "`n"
+    $request = New-DevkitShioriRequest -Id 'version'
     $run = Invoke-DevkitProcess -FilePath $tamacs.Path -Arguments @((Join-Path $probe 'shiori.dll'), '-r', '--no-loghandler') `
         -WorkingDirectory $probe -InputText $request -UnsetEnvironment @('GITHUB_ACTIONS') -TimeoutSeconds 60
     if ($run.TimedOut -or $run.ExitCode -ne 0 -or $run.StdOut -notmatch '^SHIORI/3\.0 200[^\n]*\r?\n(?:.*\r?\n)*?Value: ?(\S+)') {
@@ -87,8 +78,7 @@ function Test-NewShiori([string]$Dll) {
 }
 
 $exitCode = 0
-$work = Join-Path ([IO.Path]::GetTempPath()) ('devkit-kawari-update-' + [guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $work | Out-Null
+$work = New-DevkitWorkDir 'kawari-update'
 try {
     if (-not (Test-Path -LiteralPath $dll)) {
         Write-Host "update-kawari: FAILED - shiori.dll was not found in $GhostDir"
@@ -110,23 +100,12 @@ try {
         Write-Host "release : $($release.tag_name)$(if ($release.prerelease) { ' (pre-release)' })"
         Write-Host "notes   : $($release.html_url)"
         $zipPath = Join-Path $work $asset.name
-        Invoke-WebRequest -UseBasicParsing -Uri $asset.browser_download_url -OutFile $zipPath
-        if ([string]$asset.digest -match '^sha256:([0-9a-fA-F]{64})$') {
-            $hash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash
-            if ($hash -ne $matches[1].ToUpperInvariant()) { throw "SHA256 of $($asset.name) does not match the release (expected $($matches[1]), got $hash)" }
-        }
+        Save-DevkitReleaseAsset $asset $zipPath
     }
 
     # --- unpack and compare ------------------------------------------------------------------
     $newDll = Join-Path $work 'shiori.dll'
-    $zip = [IO.Compression.ZipFile]::OpenRead($zipPath)
-    try {
-        $entry = @($zip.Entries | Where-Object { $_.FullName.Replace('\', '/') -match '(^|/)shiori\.dll$' }) | Select-Object -First 1
-        if (-not $entry) { throw 'shiori.dll is not in the zip' }
-        [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $newDll, $true)
-    } finally {
-        $zip.Dispose()
-    }
+    if ((Expand-DevkitZipFile $zipPath @{ 'shiori.dll' = $newDll }).Count -eq 0) { throw 'shiori.dll is not in the zip' }
     $newVersion = Get-DevkitKawariVersion $newDll
     Write-Host "new     : shiori.dll $($newVersion.Text)"
     if (-not $newVersion.Phase9) { throw "the shiori.dll of this release is $($newVersion.Text); the skill supports Phase 9" }
@@ -157,7 +136,7 @@ try {
             if (-not $SkipCheck) {
                 # kosui.exe is the latest KAWARI, so this does not depend on the dll; it shows the state of the
                 # dictionaries after the update (errors here were there before the update as well).
-                $checkCode = Invoke-DictionaryCheck
+                $checkCode = Invoke-DevkitDictionaryCheck 'kawari' $GhostDir
                 if ($checkCode -eq 1) { Write-Host 'update-kawari: the dictionaries have errors (see above); they are not caused by the new shiori.dll, which kosui.exe does not use' }
                 if ($checkCode -eq 3) { Write-Host 'update-kawari: the dictionaries were not checked (kosui.exe is not installed: scripts/setup.ps1)' }
             }

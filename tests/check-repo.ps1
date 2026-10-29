@@ -86,7 +86,7 @@ foreach ($id in $shioriIds) {
         if (-not (Test-Path -LiteralPath (Join-Path $skill "templates/$id/$name"))) { Fail "templates/$id/$name is missing" }
     }
     $lib = [IO.File]::ReadAllText((Join-Path $skill "scripts/shiori/$id/lib.ps1"), $utf8)
-    foreach ($fn in @('Invoke-DevkitTamacs', 'Add-DevkitShioriDoctorItems', 'Invoke-DevkitShioriSetup', '$DevkitTamacsPurpose')) {
+    foreach ($fn in @('Invoke-DevkitTamacs', 'Add-DevkitShioriDoctorItems', 'Invoke-DevkitShioriSetup', 'Get-DevkitShioriNarProblem', '$DevkitTamacsPurpose')) {
         if (-not $lib.Contains($fn)) { Fail "scripts/shiori/$id/lib.ps1 does not define $fn" }
     }
     $common = [IO.File]::ReadAllText((Join-Path $skill 'scripts/lib/common.ps1'), $utf8)
@@ -94,6 +94,19 @@ foreach ($id in $shioriIds) {
 }
 foreach ($name in @('AGENTS.md', 'CLAUDE.md', 'updateignore', 'narignore.dev', 'github/auto_check.yml')) {
     if (-not (Test-Path -LiteralPath (Join-Path $skill "templates/$name"))) { Fail "templates/$name is missing" }
+}
+# GHOST.md differs in content by SHIORI, but the headings (the sections an author fills in, and the checklist for making
+# a ghost independent of its template) are the same, so that a template does not drift from the others.
+$ghostMdHeadings = @{}
+foreach ($id in $shioriIds) {
+    $ghostMd = Join-Path $skill "templates/$id/GHOST.md"
+    if (-not (Test-Path -LiteralPath $ghostMd)) { continue }
+    $ghostMdHeadings[$id] = (([IO.File]::ReadAllText($ghostMd, $utf8) -split "`r?`n" | Where-Object { $_ -match '^#{1,2} ' }) -join ' / ')
+}
+foreach ($id in @($shioriIds | Select-Object -Skip 1)) {
+    if ($ghostMdHeadings[$id] -ne $ghostMdHeadings[$shioriIds[0]]) {
+        Fail "templates/$id/GHOST.md has other headings than templates/$($shioriIds[0])/GHOST.md; keep the sections of the GHOST.md templates the same"
+    }
 }
 $narDev = [IO.File]::ReadAllText((Join-Path $skill 'templates/narignore.dev'), $utf8)
 if (-not $narDev.Contains('# files for developing the ghost with ukagaka-developer')) { Fail 'templates/narignore.dev lost the marker line that scripts/lib/ghost-files.ps1 looks for' }

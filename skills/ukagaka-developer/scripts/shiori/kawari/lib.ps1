@@ -346,6 +346,17 @@ function Invoke-DevkitTamacs {
     }
 }
 
+# --- build-nar and check ------------------------------------------------------------------
+
+# Tells why the nar of this ghost would not load, from the list of the files it will hold (paths relative to the ghost
+# root). Returns $null when it looks fine. Used by build-nar.ps1.
+function Get-DevkitShioriNarProblem([string[]]$Included) {
+    foreach ($required in @('ghost/master/shiori.dll', 'ghost/master/kawarirc.kis')) {
+        if ($Included -notcontains $required) { return "$required is missing or excluded (KAWARI would not load in the nar)" }
+    }
+    return $null
+}
+
 # --- doctor and setup ---------------------------------------------------------------------
 
 # What the doctor tells tamacs.exe is used for.

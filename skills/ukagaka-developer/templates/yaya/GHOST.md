@@ -10,9 +10,11 @@
 
 - 名前（`ghost/master/descript.txt` の `name`）:
 - キャラクター（`sakura.name` / `kero.name`）:
-- 作者:
+- 作者（`craftman` / `craftmanw`）:
 - 配布先・ネットワーク更新の URL:
 - 元にしたテンプレートやゴースト:
+- SHIORI: YAYA（`yaya.dll`、バージョンと、500 系か 600 系か）。文字コード:
+- YAYA の仕様書: https://yaya-shiori.github.io/yaya-docs/ （文法と関数は推測で書かず、ここで確かめる）
 
 ## ライセンス
 
@@ -40,8 +42,13 @@
 | `\0` | | | |
 | `\1` | | | |
 
+| 番号 | キャラクター | 表情・内容 | 使い方の例 |
+|---|---|---|---|
+| | | | |
+
 - 当たり判定（`surfaces.txt` の `collision`）:
-- トークで使わないサーフェス（アニメーション用の部品など）:
+- 画像がない番号、トークで使わないサーフェス（アニメーション用の部品など）:
+- シェルの一覧（`shell/` 以下と、その作者）:
 
 ## トークの書き方
 
@@ -50,3 +57,17 @@
 ## 独自のルール
 
 （このゴーストの開発で、エージェントに守ってほしいこと）
+
+## テンプレートから独立させるときの追加項目
+
+- [ ] `install.txt`（`name` `directory` `refresh` `refreshundeletemask`）
+- [ ] `ghost/master/descript.txt`（`name` `sakura.name` `kero.name` `craftman*` `icon` `homeurl` `id`）
+- [ ] `shell/master/descript.txt` と、シェルのライセンス・クレジット
+- [ ] ネットワーク更新の URL と `updates2.dau`
+- [ ] ポータルサイト、おすすめサイト、意見の投稿先の URL
+- [ ] 辞書に直接書かれたゴースト名・キャラクター名（インストール完了、ゴースト切り替え、コミュニケート、メニュー）
+- [ ] 元のゴーストに固有の台詞
+- [ ] 使わない実験用の辞書、SAORI を消す
+- [ ] `readme.txt` を書き直す
+- [ ] クレジット（元にしたゴーストと作者）
+- [ ] この `GHOST.md` を新しいゴーストの内容に書き直し、この節は済んだら消す

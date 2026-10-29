@@ -47,6 +47,39 @@ function Invoke-DevkitTamacs {
     }
 }
 
+# Sorts the messages in the YAYA log (stderr of tamacs.exe -r) into those of loading the dictionaries and those of
+# handling the request. YAYA logs each call as "// request" and its text: loading the ghost, this request, then
+# unloading; $FirstLine is the first line of the request that was sent. Returns LogLines (the whole log), LoadMessages
+# and RequestMessages (the "[FATAL] / [ERROR] / [WARN] / [NOTE]" lines, with the paths made relative to $Base; with
+# -IncludeTamacs the "[tamacs]" lines of tamacs.exe are request messages too) and LoadErrors (the [FATAL] and [ERROR]
+# lines among LoadMessages).
+function Split-DevkitYayaLog {
+    param([string]$Log, [string]$FirstLine, [string]$Base, [switch]$IncludeTamacs)
+    $logLines = @($Log -split "\r?\n")
+    $requestStart = -1
+    for ($i = 0; $i -lt $logLines.Count - 1; $i++) {
+        if ($logLines[$i] -eq '// request' -and $logLines[$i + 1].TrimEnd() -eq $FirstLine) { $requestStart = $i; break }
+    }
+    $loadMessages = New-Object System.Collections.Generic.List[string]
+    $requestMessages = New-Object System.Collections.Generic.List[string]
+    $loadErrors = New-Object System.Collections.Generic.List[string]
+    for ($i = 0; $i -lt $logLines.Count; $i++) {
+        $line = $logLines[$i]
+        if ($line -match '^\[(FATAL|ERROR|WARN|NOTE)\]') {
+            $text = ConvertTo-DevkitRelativeText $line -Base $Base
+            if ($i -lt $requestStart) {
+                $loadMessages.Add($text)
+                if ($line -match '^\[(FATAL|ERROR)\]') { $loadErrors.Add($text) }
+            } else {
+                $requestMessages.Add($text)
+            }
+        } elseif ($IncludeTamacs -and $line -match '^\[tamacs\]') {
+            $requestMessages.Add($line)
+        }
+    }
+    return [pscustomobject]@{ LogLines = $logLines; LoadMessages = $loadMessages.ToArray(); RequestMessages = $requestMessages.ToArray(); LoadErrors = $loadErrors.ToArray() }
+}
+
 # Returns the system dictionary folder (for example 'dic/system', relative to ghost/master) that contains
 # .dic files, or $null when none of $DevkitSystemDicDirs does (such as an empty git submodule).
 function Get-DevkitSystemDicDir([string]$GhostDir) {
@@ -92,6 +125,18 @@ function Test-DevkitSystemDicPath([string]$Path, [string]$Prefix = '') {
         if ($Path.StartsWith("$Prefix$dir/", [StringComparison]::OrdinalIgnoreCase)) { return $true }
     }
     return $false
+}
+
+# --- build-nar and check ------------------------------------------------------------------
+
+# Tells why the nar of this ghost would not load, from the list of the files it will hold (paths relative to the ghost
+# root). Returns $null when it looks fine. Used by build-nar.ps1.
+function Get-DevkitShioriNarProblem([string[]]$Included) {
+    if (-not ($Included | Where-Object { Test-DevkitSystemDicPath $_ 'ghost/master/' })) {
+        $systemDicNames = ($DevkitSystemDicDirs | ForEach-Object { "ghost/master/$_" }) -join ' or '
+        return "the system dictionary ($systemDicNames) is empty. Run: git submodule update --init"
+    }
+    return $null
 }
 
 # --- doctor and setup ---------------------------------------------------------------------

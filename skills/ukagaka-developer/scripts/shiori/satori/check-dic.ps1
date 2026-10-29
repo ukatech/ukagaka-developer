@@ -51,22 +51,15 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-$GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
+$ghost = Resolve-DevkitShioriGhostDir 'check-dic' $GhostDir 'satori.dll'
+if (-not $ghost.Ok) { exit $ghost.Code }
+$GhostDir = $ghost.GhostDir
 $dll = Join-Path $GhostDir 'satori.dll'
-if (-not (Test-Path -LiteralPath $dll)) {
-    Write-Host "check-dic: FAILED - satori.dll was not found in $GhostDir"
-    exit 1
-}
-
-$tamacs = Get-DevkitTamacs
-if (-not $tamacs.Path) {
-    Write-Host "check-dic: SKIPPED - $($tamacs.Error)"
-    exit 3
-}
+$tamacs = Get-DevkitShioriTool 'check-dic'
+if (-not $tamacs.Path) { exit 3 }
 
 # Paths in the output are shown relative to the ghost root (the folder with ghost/ and shell/).
-$base = Split-Path (Split-Path $GhostDir -Parent) -Parent
+$base = $ghost.Base
 $version = Get-DevkitSatoriVersion $dll
 Write-Host "check-dic: satori.dll $($version.Text)"
 
@@ -117,16 +110,9 @@ if ($Run -and $errors -eq 0) {
     }
     if ($current.Count -gt 0) { $batches.Add($current.ToArray()) }
     foreach ($chunk in $batches) {
-        $request = New-Object System.Collections.Generic.List[string]
-        $request.Add('GET SHIORI/3.0')
-        $request.Add('Charset: UTF-8')
-        $request.Add('Sender: SSP')
-        $request.Add('SecurityLevel: local')
-        $request.Add('ID: ShioriEcho')
-        for ($i = 0; $i -lt $chunk.Count; $i++) {
-            $request.Add("Reference${i}: " + [char]0xFF08 + $chunk[$i] + [char]0xFF09)
-        }
-        $echoRun = Invoke-DevkitTamacs -GhostDir $GhostDir -Arguments @('-r') -InputText ($request -join "`n") -EnableDebug -TimeoutSeconds $TimeoutSeconds
+        $references = @($chunk | ForEach-Object { [string][char]0xFF08 + $_ + [char]0xFF09 })
+        $request = New-DevkitShioriRequest -Id 'ShioriEcho' -Reference $references -Label 'check-dic'
+        $echoRun = Invoke-DevkitTamacs -GhostDir $GhostDir -Arguments @('-r') -InputText $request -EnableDebug -TimeoutSeconds $TimeoutSeconds
         if ($ShowLog) {
             Write-Host '---- SATORI log (run) ----'
             foreach ($line in ($echoRun.Log -split "`n")) { Write-Host (ConvertTo-DevkitGhostText $line $echoRun.Sandbox $GhostDir $base) }

@@ -80,18 +80,11 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-$GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
-if (-not (Test-Path -LiteralPath (Join-Path $GhostDir 'yaya.dll'))) {
-    Write-Host "shiori: FAILED - yaya.dll was not found in $GhostDir"
-    exit 1
-}
-
-$tamacs = Get-DevkitTamacs
-if (-not $tamacs.Path) {
-    Write-Host "shiori: SKIPPED - $($tamacs.Error)"
-    exit 3
-}
+$ghost = Resolve-DevkitShioriGhostDir 'shiori' $GhostDir 'yaya.dll'
+if (-not $ghost.Ok) { exit $ghost.Code }
+$GhostDir = $ghost.GhostDir
+$tamacs = Get-DevkitShioriTool 'shiori'
+if (-not $tamacs.Path) { exit 3 }
 
 # Reads "key, value // comment" from a YAYA configuration file.
 function Get-YayaSetting([string]$Path, [string]$Key) {
@@ -114,37 +107,15 @@ switch ($mode) {
         $requestText = '?? ' + $Eval
     }
     'Event' {
-        $headers = New-Object System.Collections.Generic.List[string]
-        if ($Notify) { $headers.Add('NOTIFY SHIORI/3.0') } else { $headers.Add('GET SHIORI/3.0') }
         # The system dictionary sets charset.output to the Charset header, so send the ghost's own charset.
         $yayaTxt = Join-Path $GhostDir 'yaya.txt'
         $charset = Get-YayaSetting $yayaTxt 'charset.output'
         if (-not $charset) { $charset = Get-YayaSetting $yayaTxt 'charset' }
-        if ($charset -and $charset -notmatch '^(?i:default|osnative)$') { $headers.Add('Charset: ' + $charset) }
-        $headers.Add('Sender: SSP')
-        $headers.Add('SecurityLevel: local')
-        $headers.Add('ID: ' + $EventName)
-        $references = @($Reference | Where-Object { $null -ne $_ } | ForEach-Object { $_ -split ',' })
-        for ($i = 0; $i -lt $references.Count; $i++) { $headers.Add("Reference${i}: " + $references[$i]) }
-        foreach ($extra in @($Header | Where-Object { $_ })) {
-            if ($extra -notmatch '^([^:\s]+):') {
-                Write-Host "shiori: -Header must be 'Name: value': $extra"
-                exit 1
-            }
-            $prefix = $matches[1] + ':'
-            $index = -1
-            for ($i = 1; $i -lt $headers.Count; $i++) {
-                if ($headers[$i].StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { $index = $i; break }
-            }
-            if ($index -ge 0) { $headers[$index] = $extra } else { $headers.Add($extra) }
-        }
-        foreach ($line in $headers) {
-            if ($line -match "[\r\n]") {
-                Write-Host 'shiori: values must be a single line'
-                exit 1
-            }
-        }
-        $requestText = $headers -join "`n"
+        $baseHeaders = @()
+        if ($charset -and $charset -notmatch '^(?i:default|osnative)$') { $baseHeaders += 'Charset: ' + $charset }
+        $baseHeaders += @('Sender: SSP', 'SecurityLevel: local')
+        $requestText = New-DevkitShioriRequest -Id $EventName -Reference $Reference -BaseHeader $baseHeaders -Header $Header -Notify:$Notify -SplitReference
+        if ($null -eq $requestText) { exit 1 }
     }
     'Request' {
         $requestText = $Request
@@ -162,32 +133,14 @@ if ($Level) { $tamacArgs += @('-l', $Level) }
 $result = Invoke-DevkitTamacs -GhostDir $GhostDir -Arguments $tamacArgs -InputText $requestText -UnsetEnvironment @('GITHUB_ACTIONS') -TimeoutSeconds $TimeoutSeconds
 
 # Paths in the output are shown relative to the ghost root (the folder with ghost/ and shell/).
-$base = Split-Path (Split-Path $GhostDir -Parent) -Parent
+$base = $ghost.Base
 
-# YAYA logs each call as "// request" and its text: loading the ghost, this request, then unloading.
 # Messages before this request come from loading the dictionaries.
-$logLines = @($result.StdErr -split "\r?\n")
-$requestStart = -1
-for ($i = 0; $i -lt $logLines.Count - 1; $i++) {
-    if ($logLines[$i] -eq '// request' -and $logLines[$i + 1].TrimEnd() -eq $firstLine) { $requestStart = $i; break }
-}
-$loadMessages = New-Object System.Collections.Generic.List[string]
-$requestMessages = New-Object System.Collections.Generic.List[string]
-$loadErrors = 0
-for ($i = 0; $i -lt $logLines.Count; $i++) {
-    $line = $logLines[$i]
-    if ($line -match '^\[(FATAL|ERROR|WARN|NOTE)\]') {
-        $text = ConvertTo-DevkitRelativeText $line -Base $base
-        if ($i -lt $requestStart) {
-            $loadMessages.Add($text)
-            if ($line -match '^\[(FATAL|ERROR)\]') { $loadErrors++ }
-        } else {
-            $requestMessages.Add($text)
-        }
-    } elseif ($line -match '^\[tamacs\]') {
-        $requestMessages.Add($line)
-    }
-}
+$log = Split-DevkitYayaLog -Log $result.StdErr -FirstLine $firstLine -Base $base -IncludeTamacs
+$logLines = $log.LogLines
+$loadMessages = $log.LoadMessages
+$requestMessages = $log.RequestMessages
+$loadErrors = $log.LoadErrors.Count
 
 $response = $result.StdOut -replace "\r\n", "`n"
 $exitCode = 0

@@ -39,24 +39,12 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-$GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
-if (-not (Test-Path -LiteralPath (Join-Path $GhostDir 'yaya.dll'))) {
-    Write-Host "lint: FAILED - yaya.dll was not found in $GhostDir"
-    exit 1
-}
-
-$tamacs = Get-DevkitTamacs
-if (-not $tamacs.Path) {
-    Write-Host "lint: SKIPPED - $($tamacs.Error)"
-    exit 3
-}
-
-$prefix = ''
-$rootWithSeparator = $DevkitRoot + [IO.Path]::DirectorySeparatorChar
-if ($GhostDir.StartsWith($rootWithSeparator, [StringComparison]::OrdinalIgnoreCase)) {
-    $prefix = $GhostDir.Substring($rootWithSeparator.Length).Replace('\', '/') + '/'
-}
+$ghost = Resolve-DevkitShioriGhostDir 'lint' $GhostDir 'yaya.dll'
+if (-not $ghost.Ok) { exit $ghost.Code }
+$GhostDir = $ghost.GhostDir
+$tamacs = Get-DevkitShioriTool 'lint'
+if (-not $tamacs.Path) { exit 3 }
+$prefix = $ghost.Prefix
 
 $code = 'SHIORI3FW.Lint.Run'
 if ($IncludeSystem) { $code = "SHIORI3FW.Lint.Run('system')" }
@@ -72,25 +60,9 @@ if ($result.ExitCode -eq 3) {
 }
 
 # Errors logged before this request come from loading the dictionaries (see scripts/shiori.ps1).
-$base = Split-Path (Split-Path $GhostDir -Parent) -Parent
-$logLines = @($result.StdErr -split "\r?\n")
-$requestStart = -1
-for ($i = 0; $i -lt $logLines.Count - 1; $i++) {
-    if ($logLines[$i] -eq '// request' -and $logLines[$i + 1].TrimEnd() -eq $requestText) { $requestStart = $i; break }
-}
-$loadErrors = New-Object System.Collections.Generic.List[string]
-$requestMessages = New-Object System.Collections.Generic.List[string]
-for ($i = 0; $i -lt $logLines.Count; $i++) {
-    $line = $logLines[$i]
-    if ($line -match '^\[(FATAL|ERROR|WARN|NOTE)\]') {
-        $text = ConvertTo-DevkitRelativeText $line -Base $base
-        if ($i -lt $requestStart) {
-            if ($line -match '^\[(FATAL|ERROR)\]') { $loadErrors.Add($text) }
-        } else {
-            $requestMessages.Add($text)
-        }
-    }
-}
+$log = Split-DevkitYayaLog -Log $result.StdErr -FirstLine $requestText -Base $ghost.Base
+$loadErrors = $log.LoadErrors
+$requestMessages = $log.RequestMessages
 if ($loadErrors.Count -gt 0) {
     foreach ($line in $loadErrors) { Write-Host $line }
     Write-Host 'lint: FAILED - the dictionaries have load errors. Fix them first (scripts/check-dic.ps1).'

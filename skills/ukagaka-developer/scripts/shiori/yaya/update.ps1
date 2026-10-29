@@ -55,9 +55,8 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../../lib/common.ps1')
 . (Join-Path $PSScriptRoot 'lib.ps1')
 . (Join-Path $PSScriptRoot '../../lib/ignore.ps1')
+. (Join-Path $PSScriptRoot '../../lib/update-common.ps1')
 Initialize-DevkitConsole
-Add-Type -AssemblyName System.IO.Compression
-Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 if ($SkipDll -and $SkipSystemDic) {
     Write-Host 'update-yaya: FAILED - -SkipDll and -SkipSystemDic leave nothing to update'
@@ -83,14 +82,6 @@ $exitCode = 0
 # 1 (failed) wins over 2 (needs work by hand).
 function Set-UpdateExitCode([int]$Code) {
     if ($Code -eq 1 -or $script:exitCode -eq 0) { $script:exitCode = $Code }
-}
-
-# Runs check-dic on the ghost and returns its exit code (1 = errors, 3 = not checked: tamacs.exe is not available).
-function Invoke-DictionaryCheck {
-    $powershell = (Get-Process -Id $PID).Path
-    $ErrorActionPreference = 'Continue'
-    & $powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'check-dic.ps1') -GhostDir $GhostDir -GhostRoot $DevkitRoot | Out-Host
-    return $LASTEXITCODE
 }
 
 function Invoke-DicGit([string]$Folder, [string[]]$Arguments) {
@@ -162,8 +153,7 @@ function Get-YayaReleaseLabel($Release) {
     return "$($Release.tag_name)$(if ($Release.prerelease) { ' (pre-release)' })"
 }
 
-$work = Join-Path ([IO.Path]::GetTempPath()) ('devkit-yaya-' + [guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $work | Out-Null
+$work = New-DevkitWorkDir 'yaya'
 try {
     # --- yaya.dll: what to do ----------------------------------------------------------------
     $dllPlan = $null
@@ -202,16 +192,9 @@ try {
         $asset = @($release.assets | Where-Object { $_.name -eq 'yaya.zip' }) | Select-Object -First 1
         if (-not $asset) { throw "yaya.zip was not found in release $($release.tag_name)" }
         $zipPath = Join-Path $work 'yaya.zip'
-        Invoke-WebRequest -UseBasicParsing -Uri $asset.browser_download_url -OutFile $zipPath
+        Save-DevkitReleaseAsset $asset $zipPath
         $newDll = Join-Path $work 'yaya.dll'
-        $zip = [IO.Compression.ZipFile]::OpenRead($zipPath)
-        try {
-            $entry = @($zip.Entries | Where-Object { $_.Name -eq 'yaya.dll' }) | Select-Object -First 1
-            if ($entry) { [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $newDll) }
-        } finally {
-            $zip.Dispose()
-        }
-        if (-not (Test-Path -LiteralPath $newDll)) { throw 'yaya.dll is not in yaya.zip' }
+        if ((Expand-DevkitZipFile $zipPath @{ 'yaya.dll' = $newDll }).Count -eq 0) { throw 'yaya.dll is not in yaya.zip' }
 
         $oldHash = if ($hasOld) { (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash } else { '' }
         $newVersion = (Get-Item -LiteralPath $newDll).VersionInfo.FileVersion
@@ -372,26 +355,19 @@ try {
     } else {
         $continue = $true
         if ($dllPlan) {
-            $backup = Join-Path $work 'yaya.dll.old'
-            if ($dllPlan.HasOld) { Copy-Item -LiteralPath $dll -Destination $backup }
-            try {
-                Copy-Item -LiteralPath $dllPlan.NewDll -Destination $dll -Force
-            } catch {
+            $check = { param($Dir) Invoke-DevkitDictionaryCheck 'yaya' $Dir }
+            $install = Install-DevkitFiles -Items @([pscustomobject]@{ Old = $dll; New = $dllPlan.NewDll; Exists = $dllPlan.HasOld }) -WorkDir $work -Check $check -CheckArgument $GhostDir
+            if ($install.Status -eq 'copy-failed') {
                 $continue = $false
-                Write-Host "update-yaya: could not replace yaya.dll ($($_.Exception.Message)). If SSP is running this ghost, close the ghost and retry."
+                Write-Host "update-yaya: could not replace yaya.dll ($($install.Error)). If SSP is running this ghost, close the ghost and retry."
                 Set-UpdateExitCode 1
-            }
-            if ($continue) {
-                $checkCode = Invoke-DictionaryCheck
-                if ($checkCode -eq 1) {
-                    if ($dllPlan.HasOld) { Copy-Item -LiteralPath $backup -Destination $dll -Force }
-                    Write-Host "update-yaya: the dictionary check failed with the new yaya.dll; restored $($dllPlan.OldVersion)"
-                    $continue = $false
-                    Set-UpdateExitCode 1
-                } else {
-                    if ($checkCode -eq 3) { Write-Host 'update-yaya: WARNING - the dictionaries could not be checked (tamacs.exe), so the new yaya.dll was not verified' }
-                    Write-Host "update-yaya: updated yaya.dll $($dllPlan.OldVersion) -> $($dllPlan.NewVersion) ($($dllPlan.Tag))"
-                }
+            } elseif ($install.Status -eq 'check-failed') {
+                Write-Host "update-yaya: the dictionary check failed with the new yaya.dll; restored $($dllPlan.OldVersion)"
+                $continue = $false
+                Set-UpdateExitCode 1
+            } else {
+                if ($install.CheckCode -eq 3) { Write-Host 'update-yaya: WARNING - the dictionaries could not be checked (tamacs.exe), so the new yaya.dll was not verified' }
+                Write-Host "update-yaya: updated yaya.dll $($dllPlan.OldVersion) -> $($dllPlan.NewVersion) ($($dllPlan.Tag))"
             }
         }
 
@@ -399,7 +375,7 @@ try {
             Write-Host 'update-yaya: the system dictionary was not updated'
         } elseif ($dicPlan -and $dicPlan.Mode -eq 'git') {
             Invoke-DicGit $dicPlan.Folder @('checkout', '--quiet', '--detach', $dicPlan.NewCommit) | Out-Null
-            $checkCode = Invoke-DictionaryCheck
+            $checkCode = Invoke-DevkitDictionaryCheck 'yaya' $GhostDir
             if ($checkCode -eq 1) {
                 Invoke-DicGit $dicPlan.Folder @('checkout', '--quiet', '--detach', $dicPlan.OldCommit) | Out-Null
                 Write-Host "update-yaya: the dictionary check failed with the new system dictionary; restored $($dicPlan.OldCommit.Substring(0, 7))"
@@ -427,7 +403,7 @@ try {
                 Restore-DicFolder $dicPlan.Folder $backup $dicPlan.Existed
                 throw
             }
-            $checkCode = Invoke-DictionaryCheck
+            $checkCode = Invoke-DevkitDictionaryCheck 'yaya' $GhostDir
             if ($checkCode -eq 1) {
                 Restore-DicFolder $dicPlan.Folder $backup $dicPlan.Existed
                 Write-Host 'update-yaya: the dictionary check failed with the new system dictionary; restored the previous files'

@@ -94,18 +94,11 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-$GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
-if (-not (Test-Path -LiteralPath (Join-Path $GhostDir 'satori.dll'))) {
-    Write-Host "shiori: FAILED - satori.dll was not found in $GhostDir"
-    exit 1
-}
-
-$tamacs = Get-DevkitTamacs
-if (-not $tamacs.Path) {
-    Write-Host "shiori: SKIPPED - $($tamacs.Error)"
-    exit 3
-}
+$ghost = Resolve-DevkitShioriGhostDir 'shiori' $GhostDir 'satori.dll'
+if (-not $ghost.Ok) { exit $ghost.Code }
+$GhostDir = $ghost.GhostDir
+$tamacs = Get-DevkitShioriTool 'shiori'
+if (-not $tamacs.Path) { exit 3 }
 
 $mode = $PSCmdlet.ParameterSetName
 switch ($mode) {
@@ -115,43 +108,12 @@ switch ($mode) {
             Write-Host 'shiori: -Eval is empty'
             exit 1
         }
-        $headers = New-Object System.Collections.Generic.List[string]
-        $headers.Add('GET SHIORI/3.0')
-        $headers.Add('Charset: UTF-8')
-        $headers.Add('Sender: SSP')
-        $headers.Add('SecurityLevel: local')
-        $headers.Add('ID: ShioriEcho')
-        for ($i = 0; $i -lt $lines.Count; $i++) { $headers.Add("Reference${i}: " + $lines[$i]) }
-        $requestText = $headers -join "`n"
+        $requestText = New-DevkitShioriRequest -Id 'ShioriEcho' -Reference $lines
+        if ($null -eq $requestText) { exit 1 }
     }
     'Event' {
-        $headers = New-Object System.Collections.Generic.List[string]
-        if ($Notify) { $headers.Add('NOTIFY SHIORI/3.0') } else { $headers.Add('GET SHIORI/3.0') }
-        $headers.Add('Charset: UTF-8')
-        $headers.Add('Sender: SSP')
-        $headers.Add('SecurityLevel: local')
-        $headers.Add('ID: ' + $EventName)
-        $references = @($Reference | Where-Object { $null -ne $_ } | ForEach-Object { $_ -split ',' })
-        for ($i = 0; $i -lt $references.Count; $i++) { $headers.Add("Reference${i}: " + $references[$i]) }
-        foreach ($extra in @($Header | Where-Object { $_ })) {
-            if ($extra -notmatch '^([^:\s]+):') {
-                Write-Host "shiori: -Header must be 'Name: value': $extra"
-                exit 1
-            }
-            $prefix = $matches[1] + ':'
-            $index = -1
-            for ($i = 1; $i -lt $headers.Count; $i++) {
-                if ($headers[$i].StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { $index = $i; break }
-            }
-            if ($index -ge 0) { $headers[$index] = $extra } else { $headers.Add($extra) }
-        }
-        foreach ($line in $headers) {
-            if ($line -match "[\r\n]") {
-                Write-Host 'shiori: values must be a single line'
-                exit 1
-            }
-        }
-        $requestText = $headers -join "`n"
+        $requestText = New-DevkitShioriRequest -Id $EventName -Reference $Reference -Header $Header -Notify:$Notify -SplitReference
+        if ($null -eq $requestText) { exit 1 }
     }
     'Request' {
         $requestText = $Request
@@ -165,7 +127,7 @@ switch ($mode) {
 $result = Invoke-DevkitTamacs -GhostDir $GhostDir -Arguments @('-r') -InputText $requestText -EnableDebug:($mode -eq 'Eval') -Plain:$Plain -TimeoutSeconds $TimeoutSeconds
 
 # Paths in the output are shown relative to the ghost root (the folder with ghost/ and shell/).
-$base = Split-Path (Split-Path $GhostDir -Parent) -Parent
+$base = $ghost.Base
 
 $diagnostics = @(Get-DevkitSatoriDiagnostics -Log $result.Log -Sandbox $result.Sandbox -GhostDir $GhostDir -Base $base -IncludeNotes)
 $loadMessages = @($diagnostics | Where-Object { $_.Phase -eq 'load' })

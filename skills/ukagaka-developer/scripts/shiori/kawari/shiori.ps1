@@ -82,26 +82,19 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-$GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
+$ghost = Resolve-DevkitShioriGhostDir 'shiori' $GhostDir @('shiori.dll', 'kawarirc.kis')
+if (-not $ghost.Ok) { exit $ghost.Code }
+$GhostDir = $ghost.GhostDir
 $dll = Join-Path $GhostDir 'shiori.dll'
-if (-not (Test-Path -LiteralPath $dll) -or -not (Test-Path -LiteralPath (Join-Path $GhostDir 'kawarirc.kis'))) {
-    Write-Host "shiori: FAILED - shiori.dll or kawarirc.kis was not found in $GhostDir"
-    exit 1
-}
 $version = Get-DevkitKawariVersion $dll
 if (-not $version.Phase9) {
     Write-Host "shiori: SKIPPED - shiori.dll is $($version.Text); the skill supports KAWARI Phase 9 (Phase 8 dictionaries run on it unchanged). Update it after the author agrees: references/kawari/update.md"
     exit 3
 }
-$tamacs = Get-DevkitTamacs
-if (-not $tamacs.Path) {
-    Write-Host "shiori: SKIPPED - $($tamacs.Error)"
-    exit 3
-}
+$tamacs = Get-DevkitShioriTool 'shiori'
+if (-not $tamacs.Path) { exit 3 }
 
 $mode = $PSCmdlet.ParameterSetName
-$baseHeaders = @('Charset: UTF-8', 'Sender: SSP', 'SecurityLevel: local')
 switch ($mode) {
     'Eval' {
         $text = ($Eval -split "\r\n|\r|\n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }) -join ' '
@@ -109,34 +102,12 @@ switch ($mode) {
             Write-Host 'shiori: -Eval is empty'
             exit 1
         }
-        $requestText = (@('GET SHIORI/3.0') + $baseHeaders + @("ID: $DevkitKawariEvalId", "Reference0: $text")) -join "`n"
+        $requestText = New-DevkitShioriRequest -Id $DevkitKawariEvalId -Reference $text
+        if ($null -eq $requestText) { exit 1 }
     }
     'Event' {
-        $headers = New-Object System.Collections.Generic.List[string]
-        if ($Notify) { $headers.Add('NOTIFY SHIORI/3.0') } else { $headers.Add('GET SHIORI/3.0') }
-        foreach ($h in $baseHeaders) { $headers.Add($h) }
-        $headers.Add('ID: ' + $EventName)
-        $references = @($Reference | Where-Object { $null -ne $_ } | ForEach-Object { $_ -split ',' })
-        for ($i = 0; $i -lt $references.Count; $i++) { $headers.Add("Reference${i}: " + $references[$i]) }
-        foreach ($extra in @($Header | Where-Object { $_ })) {
-            if ($extra -notmatch '^([^:\s]+):') {
-                Write-Host "shiori: -Header must be 'Name: value': $extra"
-                exit 1
-            }
-            $prefix = $matches[1] + ':'
-            $index = -1
-            for ($i = 1; $i -lt $headers.Count; $i++) {
-                if ($headers[$i].StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { $index = $i; break }
-            }
-            if ($index -ge 0) { $headers[$index] = $extra } else { $headers.Add($extra) }
-        }
-        foreach ($line in $headers) {
-            if ($line -match "[\r\n]") {
-                Write-Host 'shiori: values must be a single line'
-                exit 1
-            }
-        }
-        $requestText = $headers -join "`n"
+        $requestText = New-DevkitShioriRequest -Id $EventName -Reference $Reference -Header $Header -Notify:$Notify -SplitReference
+        if ($null -eq $requestText) { exit 1 }
     }
     'Request' {
         $requestText = $Request

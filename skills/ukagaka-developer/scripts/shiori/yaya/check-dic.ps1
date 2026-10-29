@@ -27,22 +27,14 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-$GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
-$dll = Join-Path $GhostDir 'yaya.dll'
-if (-not (Test-Path -LiteralPath $dll)) {
-    Write-Host "check-dic: FAILED - yaya.dll was not found in $GhostDir"
-    exit 1
-}
-
-$tamacs = Get-DevkitTamacs
-if (-not $tamacs.Path) {
-    Write-Host "check-dic: SKIPPED - $($tamacs.Error)"
-    exit 3
-}
+$ghost = Resolve-DevkitShioriGhostDir 'check-dic' $GhostDir 'yaya.dll'
+if (-not $ghost.Ok) { exit $ghost.Code }
+$GhostDir = $ghost.GhostDir
+$tamacs = Get-DevkitShioriTool 'check-dic'
+if (-not $tamacs.Path) { exit 3 }
 
 # Paths in the output are shown relative to the ghost root (the folder with ghost/ and shell/).
-$base = Split-Path (Split-Path $GhostDir -Parent) -Parent
+$base = $ghost.Base
 
 $tamacArgs = @()
 if ($Level) { $tamacArgs += @('-l', $Level) }
