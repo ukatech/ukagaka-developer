@@ -16,6 +16,7 @@
     { "level": "error", "regex": "^\\s*loading (?!satori_conf\\.|satori_save)\\S.*\\.\\.\\. failed\\.", "hint": "a dictionary file could not be read" },
     { "level": "warning", "regex": "^\\s*loading satori_conf\\.\\S+\\.\\.\\. failed\\.", "hint": "satori_conf.txt was not found, so ＊初期化 and ＠SAORI are not read" },
     { "level": "error", "regex": "カッコの対応関係が正しくない部分があります", "hint": "an unclosed （ in a dictionary; write φ（ for a literal one" },
+    { "level": "warning", "regex": "^\\s*（(?:i, s, m, x が使えます|undefined subroutine .*|missing .*)） not found\\.", "hint": "the text of a regex_ error message was expanded as a name; the cause is the regex_ call before it (see the 400 Bad Request error): an invalid pattern, a (?&name) that is not defined, or an option other than i, s, m, x" },
     { "level": "error", "regex": "^\\s*（[^（）]*[、,，､][^（）]*） not found\\.", "hint": "a call with arguments to a name that does not exist: a misspelled function, or a SAORI missing from ＠SAORI" },
     { "level": "warning", "regex": "^\\s*（.*） not found\\.", "hint": "no word group, sentence, variable or function has that name (a variable that was never set is reported too, and stays in the text as written)" },
     { "level": "note", "regex": "^\\s*[＞≧≫].* not found\\.", "hint": "the jump target sentence does not exist; SATORI goes on with the next line, which dictionaries often rely on" },
