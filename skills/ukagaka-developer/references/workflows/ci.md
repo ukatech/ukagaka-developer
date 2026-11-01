@@ -16,6 +16,23 @@
 - スキルは `main` の最新を取るので、スキルが更新されると、ゴーストを変えなくてもチェックの内容が変わる。固定したいときは、clone に `--branch <タグまたはブランチ>` を付ける（今のところ、リポジトリにタグは無いので、コミットを固定するなら `git clone` のあとに `git -C ... checkout <SHA>`）。
 - `scripts/check-dic.ps1` は GitHub の API を使わない（華和梨の `setup.ps1 -Tool kosui` は使う。`GITHUB_TOKEN` があれば使う）。`update-shiori.ps1` などを CI で動かすときは、API の回数制限を避けるため `GITHUB_TOKEN` を環境変数に渡す（スクリプトが使う）。
 
+## ゴースト固有の点検
+
+ゴーストが `.github/ghost-checks.json` に点検を登録しているとき（`references/workflows/custom-checks.md`）、辞書チェックのあとに次の step を足すと、CI でも回る。`templates/github/auto_check.yml` にはこの step が入っている（`scripts/init-ghost.ps1 -Workflow` で作る新しい `auto_check.yml`）。**すでにあるゴーストの `auto_check.yml` は自動では変わらない**ので、必要なら手で足す。
+
+```yaml
+      - name: custom checks
+        # The checks of this ghost (.github/ghost-checks.json). Nothing is done when the file does not exist.
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: '& "$env:RUNNER_TEMP/ukagaka-developer/skills/ukagaka-developer/scripts/check-custom.ps1" -Ci -GhostRoot $env:GITHUB_WORKSPACE'
+```
+
+- 登録が無いゴーストでは 1 行出して終了コード 0 で終わる。step を足しても、登録が無ければ今までと同じ結果になる。
+- GitHub Actions（`GITHUB_ACTIONS=true`）では、登録されたコマンドを `-AllowCustom` なしで実行する。`-Ci` は失敗を注釈にする。
+- `if: ${{ !cancelled() }}` で、辞書チェックが失敗しても点検を続けて、両方の結果を見られるようにする。外してもよい。
+- 点検が呼ぶ Python などは、`windows-latest` のランナーに入っているものを使う（足りないものを入れる step を前に足す）。
+
 ## nar の自動リリース
 
 旧キットの `auto_release.yml` は、push のたびに**既存のリリースとタグをすべて消して**作り直す作りだった。残したいリリースがあるゴーストでは、そのまま使わない。作り直すなら、nar を作る手順を次のようにする。

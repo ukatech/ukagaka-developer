@@ -8,6 +8,7 @@
 
 1. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1` を実行する（里々は、名前のある文を 1 回ずつ実行して実行時のエラーも探す `-Run` を付けるとよい）。check-dic、check-shell、lint を順に行う。華和梨は kosui.exe が要る（無ければ `skipped`。`scripts/setup.ps1` を作者に一言断ってから実行する）。
    - `skipped (tool not available)` と出た項目は、ツールが入っていないか SSP が見つからない。`scripts/setup.ps1` は作者に一言断ってから実行する。SSP の場所は、ホームフォルダの `local.json` か環境変数 `SSP_PATH` で指定してもらう（`references/commands.md`）。
+   - ゴーストが独自の点検（`.github/ghost-checks.json`）を持つとき、`check.ps1` は最後に `check-custom` を足すが、コマンドの一覧を表示するだけで実行しない（`skipped (not run on purpose)`）。点検はそのゴーストのプログラムなので、**一覧のコマンドと、それが呼ぶスクリプトを読み**、PC に影響しない（ファイルを書き換えない、外部プログラムを動かさない）と確かめてから、`scripts/check-custom.ps1 -AllowCustom` を実行する。迷うときは作者に確かめる。詳しくは `references/workflows/custom-checks.md`。
 2. 結果は次の優先順で扱う。
    1. **check-dic の error**: 辞書が正しく読み込まれていない（YAYA は緊急モードで起動してしまう）。最優先で直す。エラーの読み方と直し方は SHIORI ごとに違う: YAYA は `references/yaya/check.md`、里々は `references/satori/check.md`、華和梨は `references/kawari/check.md`。
    2. **check-shell の Error / Warning**: 直す。`[SERIKO] shell/master/surfaces.txt:Line=123:Surface=10 ...` のように定義位置が出るので、そのファイルと行を直す。二重定義のエラーには、先に定義された側の位置も ` (ファイル名:Line=n)` として付く。位置が出ない（位置の無い種類の Notice）ときは、`Surface=` の番号から探す。Notice（使われていないサーフェスなど）は報告だけにする。シェルの画像そのものは、`GHOST.md` でライセンスを確かめるまで編集しない（改変を禁じているシェルがある。編集の手順は `references/workflows/edit-shell-image.md`）。`surfaces.txt` の重ね合わせ（`element` など）を直したときは、チェックが通っても位置のずれやパーツの抜けは見つからないので、画像を読めるなら `scripts/dump-surface.ps1 -Surface <番号>` で仕上がりを見る。当たり判定（`collision` など）を直したときは `-Collision` を付けて、枠の位置と名前を見る。

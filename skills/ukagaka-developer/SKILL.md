@@ -75,6 +75,7 @@ templates/     ゴーストに足す入門用ファイル（GHOST.md など）�
 | 「華和梨を更新して」「shiori.dll を更新して」「華和梨 9 にして」「華和梨のバージョンを教えて」 | `references/kawari/update.md` |
 | 「辞書を UTF-8 にして」「Shift_JIS の辞書を直したい」（華和梨） | `references/kawari/dictionary.md` の「文字コード」 |
 | 「SHIORI を最新にして」 | `references/workflows/update-shiori.md` |
+| 「このゴーストの決まりを自動で確かめたい」「トークの書き方のチェックを足したい」「同じ間違いを繰り返さないようにしたい」 | `references/workflows/custom-checks.md` |
 | 「自分のゴーストを作りたい」「テンプレート（サンプル）から独立させたい」 | `references/workflows/new-ghost.md` |
 | 「旧キットを外して」「tools フォルダを片付けたい」「開発キットからスキルに移したい」 | `references/workflows/migrate-from-devkit.md` |
 | 「里々のログを見たい」「ログ受信ウインドウを開いて」 | `references/commands.md`（`scripts/log-window.ps1`） |
@@ -91,7 +92,7 @@ templates/     ゴーストに足す入門用ファイル（GHOST.md など）�
 7. 既存のトークや作者が書いた台詞を、頼まれていないのに大量に書き換えたり消したりしない。未使用の関数、変数、単語群が見つかっても、報告するだけにする。
 8. シェルの画像は、`GHOST.md` でライセンスを確かめるまで編集しない（改変を禁じているシェルがある）。画像の編集には `scripts/image.ps1` を使う（書き出すのは 32bit RGBA PNG）。
 9. **作者の確認を取ってから行うこと**: アプリのインストール、SSP へのゴーストのインストール、SHIORI やスキルの更新、旧キットの除去、リリース、ネットワーク更新ファイルのアップロードなど、手元のファイル編集を超える操作。upstream（親リポジトリ）への PR は、作者が明示的に許可するまで一切しない。
-10. `scripts/` の外から ukagaka-developer のスクリプトを書き換えない。足したい機能は、ゴーストの側に自分のスクリプトとして置くか、https://github.com/ukatech/ukagaka-developer に提案する。ゴーストの側に PowerShell のスクリプトを置くときは、Windows PowerShell 5.1 でも動くように書き、**ASCII 文字だけで書く**（BOM のないファイルに日本語を書くと 5.1 で文字化けする）。
+10. `scripts/` の外から ukagaka-developer のスクリプトを書き換えない。足したい機能は、ゴーストの側に自分のスクリプトとして置くか（点検なら `.github/ghost-checks.json` に登録すると、`check.ps1` と GitHub Actions に組み込める。`references/workflows/custom-checks.md`）、https://github.com/ukatech/ukagaka-developer に提案する。ゴーストの側に PowerShell のスクリプトを置くときは、Windows PowerShell 5.1 でも動くように書き、**ASCII 文字だけで書く**（BOM のないファイルに日本語を書くと 5.1 で文字化けする）。
 
 ## 仕様を調べる
 

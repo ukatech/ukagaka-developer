@@ -109,6 +109,7 @@ yaya.dll を更新して
 | `AGENTS.md`、`CLAUDE.md` | `GHOST.md` を読むこと、スキルを使うことだけを書いた短い案内 |
 | `.narignore` ほか | nar から開発用のファイルを除く設定 |
 | `.github/workflows/auto_check.yml` | GitHub で push ごとに辞書チェック（任意） |
+| `.github/ghost-checks.json` | そのゴースト独自の点検の登録（任意）。`check.ps1` と GitHub Actions で回る |
 
 ビルドした tamacs.exe と、SSP の場所の設定（`local.json`）は、スキルの更新で消えないよう、ホームフォルダ（`%LOCALAPPDATA%\ukagaka-developer`。環境変数 `UKADEV_HOME` で変えられます）に置かれます。
 

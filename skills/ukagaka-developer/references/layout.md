@@ -18,6 +18,7 @@
 | `updates2.dau`、`updates.txt` | ネットワーク更新ファイル（`scripts/build-nar.ps1` が作る。ゴーストのルートに置いて配るもの。git には入れない） |
 | `.gitignore`、`.gitattributes`、`.editorconfig` | git と、エディタの設定（文字コード UTF-8、改行 LF、辞書のインデント）。`.gitattributes` は SHIORI によって `*.sat` の扱いが違う |
 | `.github/workflows/auto_check.yml` | push ごとに辞書チェックする（`templates/github/auto_check.yml`。`references/workflows/ci.md`） |
+| `.github/ghost-checks.json` | そのゴースト独自の点検の登録（任意。`references/workflows/custom-checks.md`）。`.github/` は nar に入らない |
 | `.claude/`、`.agents/` | AI エージェントの設定と、コピーで入れたスキル（`.agents/skills/ukagaka-developer/`）。nar には入れない |
 | `build/` | `scripts/build-nar.ps1` の出力（nar と更新ファイル）。`build/.gitignore` が自分を git から外す |
 

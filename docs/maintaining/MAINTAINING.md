@@ -45,6 +45,7 @@ tests/check-repo.ps1                            リポジトリの検査（CI �
 - 冒頭のコメントヘルプ（`.SYNOPSIS`、`.DESCRIPTION`、終了コード、`.EXAMPLE`）を書き、`references/commands.md`（と、SHIORI のコマンド表）も直す。
 - 使い方の例は `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/<名前>.ps1` の形にそろえる。`SKILL.md` の `allowed-tools` は、この形で許可している（Claude Code の仕様では、許可はスキルを読み込んだターンの間だけで、次のメッセージで切れる。また、パスの置き換えは `Bash(...)` の規則に書かれていて、`PowerShell(...)` の規則に効くかは確かめていない。なので、文書に「確認が出ない」とは書かない。読み取り専用のスクリプトだけ。`run-ssp`、`sstp`、`build-nar`、`update-*`、`migrate-*`、`init-ghost` は、作者の PC に影響するので許可しない）。
 - スクリプトを足したら、`SKILL.md` の表、`references/commands.md`、必要なら `allowed-tools` を直す。
+- **ゴーストが登録したコマンドを動かす `check-custom.ps1` は、`allowed-tools` に入れない。** `.github/ghost-checks.json` のコマンドは、ゴーストのリポジトリが持つ任意のプログラムなので、PC では `-AllowCustom` を付けたときと GitHub Actions（`GITHUB_ACTIONS=true`）でだけ実行する。`-Ci` は注釈のスイッチで、許可ではない。`check.ps1` に `-AllowCustom` を渡す口を作らない: `allowed-tools` の `scripts/check.ps1*` は引数を問わず許可するので、渡せると確認なしで実行できてしまう。ただし、これは作法であって防御ではない（エージェントが `check-custom.ps1 -AllowCustom` を自分で打てば動く）。他人のゴーストを預かるときの注意は `references/workflows/custom-checks.md` に書いてある。
 
 ## 新しい SHIORI を足す
 
