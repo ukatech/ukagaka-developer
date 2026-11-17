@@ -51,6 +51,10 @@
 - 開発用のファイル（`GHOST.md`、`AGENTS.md`、`.claude/` など）と、リポジトリ用のファイル（`.github/`、`.gitignore`、`.editorconfig` など）は、`.narignore` の開発用ブロックが除外する。ブロックが無ければ `scripts/init-ghost.ps1 -NarignoreDevBlock`。
 - 旧キットの「キットあり版の nar」（`auto_release_devkit.yaml`）は、スキルに移したら要らない。消す。
 
+## metainfo
+
+ゴーストを GitHub で公開しているのに、デフォルトブランチのルートに `.ukagaka/`（Web アプリ向けの metainfo）が無いときは、Actions を設定するついでに、付けることを一言勧める（リポジトリに Topics の `ukagaka`、`ukagaka-ghost`、`sirefaso`、`sosiremi` を付けることも。バルーンなら `ukagaka-balloon`）。断られたら、それ以上は勧めない。作り方は `references/workflows/metainfo.md`。
+
 ## 旧キットのワークフローを移す
 
 旧キットの `tools/check-dic.ps1 -Ci` や `tools/build-nar.ps1` を呼ぶワークフローは、`tools/` が無くなると失敗する。`scripts/migrate-from-devkit.ps1` が `auto_check.yml` を替え、それ以外のワークフローは `STALE` として知らせる。上の例に沿って手で直す。

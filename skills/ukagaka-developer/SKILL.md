@@ -77,6 +77,7 @@ templates/     ゴーストに足す入門用ファイル（GHOST.md など）�
 | 「SHIORI を最新にして」 | `references/workflows/update-shiori.md` |
 | 「このゴーストの決まりを自動で確かめたい」「トークの書き方のチェックを足したい」「同じ間違いを繰り返さないようにしたい」 | `references/workflows/custom-checks.md` |
 | 「自分のゴーストを作りたい」「テンプレート（サンプル）から独立させたい」 | `references/workflows/new-ghost.md` |
+| 「metainfo を付けたい」「`.ukagaka` フォルダを作って」「ゴーストキャプターさくらに載せたい」「GitHub に公開したい」 | `references/workflows/metainfo.md` |
 | 「旧キットを外して」「tools フォルダを片付けたい」「開発キットからスキルに移したい」 | `references/workflows/migrate-from-devkit.md` |
 | 「里々のログを見たい」「ログ受信ウインドウを開いて」 | `references/commands.md`（`scripts/log-window.ps1`） |
 | 「スキルを更新して」「ukagaka-developer を最新にして」 | `references/workflows/update-skill.md` |
@@ -112,6 +113,7 @@ templates/     ゴーストに足す入門用ファイル（GHOST.md など）�
    - SSTP: https://ssp.shillest.net/ukadoc/manual/spec_sstp.html
    - install.txt / .narignore / .updateignore / delete.txt: https://ssp.shillest.net/ukadoc/manual/descript_install.html
    - ネットワーク更新: https://ssp.shillest.net/ukadoc/manual/dev_update.html
+   - metainfo（Web アプリ向けのゴースト情報。`.ukagaka/` フォルダ）: https://ukatech.shillest.net/metainfo-standard/ （GitHub: https://github.com/ukatech/metainfo-standard ）
    - YAYA: yaya-docs https://yaya-shiori.github.io/yaya-docs/ （文法、システム関数、ハッシュと入れ子 `grammar/12-hash`・`13-nesting`、正規表現 `grammar/14-regular-expressions`、600 系の変更点）、本体 https://github.com/YAYA-shiori/yaya-shiori 、システム辞書 https://github.com/YAYA-shiori/yaya-dic
    - 里々: satori-docs https://ukatech.shillest.net/satori-docs/ （文法、イベントと動作、内蔵関数、システム変数、ssu と正規表現 `ssu/regex`、エラーメッセージ、里々 2 の紹介 `other/satori2-launch`。`ukatech.github.io/satori-docs/` はここに転送される）、本体 https://github.com/ukatech/satoriya-shiori
    - 華和梨: kawari-docs https://ukatech.shillest.net/kawari-docs/ （文法、SHIORI としての動作、KIS コマンド、幸水と `kosui --check`、移行ガイド、更新履歴。生の Markdown は `kis/set.md` のようにリポジトリと同じパスで読める。AI 向けの案内は `llms.txt`）、本体 https://github.com/ukatech/kawari
@@ -133,6 +135,10 @@ YAYA の関数の戻り値や、里々・華和梨の関数の細かい挙動は
 | `references/layout.md` | ゴーストのディレクトリ構成。どのファイルが何をするか、実行時に作られるもの |
 | `references/standalone.md` | テンプレートから独立させるとき、配布する前に変えるものの一覧 |
 | `references/ai-guidelines.md` | AI を使ったゴースト制作のガイドラインと、AI がやりがちな失敗 |
+
+## ゴーストを公開するとき
+
+ゴーストを GitHub で公開する話になったら（リポジトリを作る、GitHub Actions を設定する、nar をリリースする、テンプレートから独立させる）、Web アプリ向けの情報 **metainfo**（デフォルトブランチのルートの `.ukagaka/`）を付けることを、一言**勧める**。GitHub 以外で公開するときも、付けられるなら付けるとよいと、軽くほのめかす。nar には含めても含めなくてもよい。断られたら、それ以上は勧めない。作り方は `references/workflows/metainfo.md`。
 
 ## AI を使ったゴースト制作の約束
 

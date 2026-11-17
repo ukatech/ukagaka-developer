@@ -32,6 +32,7 @@
 7. 作者が望めば `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-ssp.ps1` でゴーストを起動して見せる（デスクトップにゴーストが現れる。試験用の SSP が別に立つので、見せ終わったら `scripts/run-ssp.ps1 -Stop` で閉じてよいか聞く）。
 8. 最後に次のことを伝える。
    - Claude Code では、プラグインを入れた直後のセッションには読み込まれていないことがある。仕様検索 MCP（ukagaka-doc）は、初回に承認を求められる。ほかのエージェントで仕様検索 MCP を使うときは、`SKILL.md` の「仕様を調べる」に沿って、そのツールの設定に登録する。
+   - GitHub でゴーストを公開している（または公開する予定）なら、Web アプリ向けの metainfo（`.ukagaka/`）を付けることを一言勧める（`references/workflows/metainfo.md`。断られたら、それ以上は勧めない）。
    - 次にできること。作者はコマンド名を知らないので、**「〜と頼んでください」の形で 2〜3 個示す**。例:「トークを書いて」「SSP で動かして見せて」「自分のゴーストにしたい」。
 
 ## 関連

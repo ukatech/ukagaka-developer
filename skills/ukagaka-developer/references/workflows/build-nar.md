@@ -26,7 +26,12 @@
 4. 作者が望んだときだけ `-Install` を付けて SSP にインストールする。SSP 側の同じゴーストが上書きされるので、必ず先に確認を取る。
 5. ネットワーク更新では、ゴーストのファイルと一緒に `updates2.dau` と `updates.txt` をサーバーのゴーストのルート（`On_homeurl` の URL）に置く。アップロードは作者に任せる（エージェントが行うときは、先に確認を取る）。
 
+## metainfo
+
+nar を作る・リリースする場面では、GitHub でゴーストを公開しているなら、Web アプリ向けの metainfo（`.ukagaka/`）がまだ無いときに、付けることを一言勧める（GitHub 以外なら、付けられるなら付けるとよい、と軽く触れる。断られたら、それ以上は勧めない）。作り方は `references/workflows/metainfo.md`。`.ukagaka/` は nar に含めても含めなくてもよく、`.narignore` が除外しなければ入る（`-ListOnly` に出る）。
+
 ## 関連
 
+- metainfo: `references/workflows/metainfo.md`
 - `.narignore` / `.updateignore` の書き方: `references/layout.md`
 - GitHub Actions で自動リリースする: `references/workflows/ci.md`

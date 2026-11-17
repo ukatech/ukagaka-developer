@@ -19,6 +19,7 @@
 | `.gitignore`、`.gitattributes`、`.editorconfig` | git と、エディタの設定（文字コード UTF-8、改行 LF、辞書のインデント）。`.gitattributes` は SHIORI によって `*.sat` の扱いが違う |
 | `.github/workflows/auto_check.yml` | push ごとに辞書チェックする（`templates/github/auto_check.yml`。`references/workflows/ci.md`） |
 | `.github/ghost-checks.json` | そのゴースト独自の点検の登録（任意。`references/workflows/custom-checks.md`）。`.github/` は nar に入らない |
+| `.ukagaka/` | **metainfo**（Web アプリ向けのゴースト情報。ゴーストキャプターさくらなどが読む。SSP は読まない）。GitHub のゴーストは、デフォルトブランチのルートに置くことが推奨されている（任意）。nar には含めても含めなくてもよい。`.narignore` が除外しない限り入る（`references/workflows/metainfo.md`） |
 | `.claude/`、`.agents/` | AI エージェントの設定と、コピーで入れたスキル（`.agents/skills/ukagaka-developer/`）。nar には入れない |
 | `build/` | `scripts/build-nar.ps1` の出力（nar と更新ファイル）。`build/.gitignore` が自分を git から外す |
 
