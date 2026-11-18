@@ -10,7 +10,8 @@ metainfo を作る・ゴーストの `descript.txt` に書き足すのは、作�
 
 metainfo standard は、Web アプリケーション（ゴーストキャプターさくらなど、ゴーストの一覧や検索を作るサービス）が必要とする、ゴーストの基本情報を表す拡張可能な規格。仕様: https://ukatech.shillest.net/metainfo-standard/ （GitHub: https://github.com/ukatech/metainfo-standard 。英語・中国語・日本語の README がある）。
 
-- **Web アプリのためのもの**で、SSP や SHIORI は読まない。ゴーストの動作には関係しない。
+- **Web アプリのためのもの**で、ゴーストの動作には関係しない。metainfo フォルダの中身は、SSP も SHIORI も読まない。
+- ただし SSP 2.9.35 以降は、ゴーストの `descript.txt` の `metainfo`、`githubrepo`、`uuid_base` を保持し、プロパティシステム（`metainfo`、`githubrepo`、`uuid_base`、`uuid`）で返す。`uuid` は、ネットワークに出ずに手元の情報だけから計算する（計算は下の「UUID」と同じ。`homeurl` は `descript.txt` に書かれたものだけを使い、`var.txt` や SHIORI が返す値は使わない）。名前の代わりに UUID を書ける場面もある（`ghostlist(UUID)`、`\![change,ghost,UUID]`、SSTP の `ReceiverGhostUUID` など。UKADOC のプロパティシステムの `uuid`）。
 - 例えば、ゴーストのプレビュー画像を `shell/master/` に置かなくてよくなる（プロジェクトが散らからない）。更新の置き場所が作者のページに限られない。
 - 仕様にはバージョン番号の記載がない。迷ったら、上の仕様ページで確かめる（`SKILL.md` の「仕様を調べる」）。
 
@@ -25,6 +26,22 @@ metainfo standard は、Web アプリケーション（ゴーストキャプタ�
 - ほのめかしの例:「GitHub に置くなら、Web アプリ向けの情報（metainfo）を `.ukagaka` に置いておくと、ゴーストの一覧サービスに載りやすくなります。必要なら作りますよ」。1 回言えば足りる。
 - ほのめかす場面: ゴーストを公開する話（nar を作る、GitHub Actions を設定する、リリースする、テンプレートから独立させる）になったとき。ゴーストのルートに `.git` があり、リモートが GitHub なら、いっそう勧めやすい。すでに `.ukagaka/descript.txt` があれば、勧めない。
 - **ゴーストの配布物（nar）には、含めても含めなくてもよい。** 規格に決まりはない。作者の好みで決めてよく、決まらなければ、今の `.narignore` のままにする（`.ukagaka/` は除外されず、nar に入る）。入れたくなければ `.narignore` と `.updateignore` に `.ukagaka/` を足す（`.updateignore` は `include:.narignore` で共通部分を取り込んでいるので、`.narignore` だけでも足りる。`references/layout.md`）。
+
+## metainfo フォルダの置き場所（URL）を選ぶ
+
+metainfo フォルダは、URL で読めればどこでもよい。**この URL の文字列から UUID が決まる**ので、あとから変えにくい。作者に聞いて決める。
+
+| 置き場所 | URL の例 | 向くとき |
+|---|---|---|
+| リポジトリのデフォルトブランチのルート（規格の推奨） | `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/.ukagaka/` | 手間が少ない。push すれば読める。ブランチ名・オーナー名が UUID に入る |
+| GitHub Pages・自分のドメインなど | `https://example.com/<ghost>/.ukagaka/` | すでにネットワーク更新を Pages などで配っているとき。UUID が GitHub のアカウントやブランチ名から切り離される。デプロイを通して配るので、手順が増える（下） |
+
+- **`githubrepo` だけでは足りないことがある。** SSP は既定ブランチを調べにいかず、`master` とみなして UUID を計算する。既定ブランチが `main` などのリポジトリでは、`metainfo` を明示する。
+- **Pages などのデプロイで配るとき**:
+  - リポジトリには、規格どおり `.ukagaka/` を置く（ゴーストの `descript.txt` の `metainfo` が、デプロイ先の URL を指す）。nar と更新ファイルに入れたくなければ、`.narignore` に `/.ukagaka/` を足す。
+  - デプロイの処理は、`.ukagaka/` を出力に別に載せる必要がある。ゴーストごとの処理なので、そのゴーストのデプロイ用スクリプトに足す（このスキルには、そのスクリプトは入っていない）。更新ファイルの一覧（`updates2.dau`）には載せない。
+  - **先頭が `.` のフォルダは、`actions/upload-pages-artifact` v4 では隠しファイルとして除外される**（v4.0.0 のリリースノートに明記。v3 は含める）。v4 を使うなら、artifact を自前で作るか、フォルダ名を `.` で始めない名前にする（`metainfo` の URL はフォルダの名前を問わない）。Dependabot などで v4 に上がると、黙って公開されなくなるので、ワークフローに注釈を残す。
+  - ブランチから配る Pages（Jekyll が走る形）では、`.nojekyll` がないと `.` で始まるフォルダが隠れる。Actions の artifact で配る形では Jekyll は走らないが、`.nojekyll` を置いておけば、どちらでも同じに動く。
 
 ## GitHub の Topics
 
@@ -86,6 +103,25 @@ languages,ja
 | `icon` | 任意 | アイコンのリンク。省略すると、`.ukagaka/icon.png` があればそれ |
 | `uuid_base` | 任意 | UUID の衝突を避けるための追加の文字列 |
 
+- `icon.png` は、ゴーストの `icon.ico` に 256px の PNG が入っているなら、そのまま取り出せる（`scripts/image.ps1` では ICO を扱わない）。確かめたやり方:
+
+  ```powershell
+  $b = [IO.File]::ReadAllBytes('ghost/master/icon.ico')
+  $n = [BitConverter]::ToUInt16($b, 4)
+  for ($i = 0; $i -lt $n; $i++) {
+      $e = 6 + 16 * $i
+      if ($b[$e] -eq 0) {   # 幅 0 は 256px
+          $size = [BitConverter]::ToUInt32($b, $e + 8)
+          $off = [BitConverter]::ToUInt32($b, $e + 12)
+          if ($b[$off] -eq 0x89 -and $b[$off + 1] -eq 0x50) {   # PNG の署名
+              [IO.File]::WriteAllBytes('.ukagaka/icon.png', $b[$off..($off + $size - 1)])
+          }
+      }
+  }
+  ```
+
+  256px が BMP 形式の ICO なら、この方法は使えない。
+- `preview/` は、シェルの立ち絵（`surface0.png` など）を複製するのが手早い。シェルのライセンスが許すかは、先に確かめる（`GHOST.md`）。立ち絵を作り直したら、複製も入れ替える。
 - 仕様ページのサンプルには `homeurl` の行もある。表の項目には定義がないが、UUID の元になる値として出てくる（下の「UUID」）。ゴーストが持つ `homeurl`（ネットワーク更新の URL）をそのまま写すとよい。
 - 項目の意味や値が確かでないときは、推測で書かず、仕様ページ（https://ukatech.shillest.net/metainfo-standard/ ）を読む。
 
@@ -116,6 +152,8 @@ githubrepo,https://github.com/<owner>/<repo>
 - `metainfo` は metainfo フォルダの URL、`githubrepo` は GitHub プロジェクトの URL。効果は同じ。
 - `ghost/master/descript.txt` は、ゴーストの本体の設定なので、**書き足す前に作者に確かめる**。書き足したら `scripts/check-dic.ps1` を通す（`SKILL.md` の「作業のルール」1）。文字コードと改行は今のままにする。
 - metainfo を持たない既存のゴーストに、あとから metainfo と UUID を付けるときも、この書き足しで足りる。
+- 既定ブランチが `master` でないリポジトリでは、`githubrepo` だけだと SSP が計算する UUID と合わない。`metainfo` も書く（上の「metainfo フォルダの置き場所」）。
+- ゴーストの `descript.txt` に `homeurl` が無いときは、UUID は `metainfo` の URL から決まる（`homeurl` は metainfo が無いときにだけ使われる）。
 
 ## UUID
 
@@ -148,7 +186,8 @@ $md5 = [System.Security.Cryptography.MD5]::Create()
 3. `ghost/master/descript.txt` に `metainfo`（と `githubrepo`）を書き足す。書く前に作者に見せる。
 4. `scripts/check.ps1` を通す。`.narignore` を変えたときは、`scripts/build-nar.ps1 -ListOnly` で、`.ukagaka/` が思ったとおり入る・外れるかを確かめる。
 5. GitHub のリポジトリには、Topics（ゴーストなら `ukagaka`、`ukagaka-ghost`、`sirefaso`、`sosiremi`）を付けることを勧める。「GitHub の Topics」のとおり、変更は作者に任せる。
-6. コミットしても、push は作者が望んだときだけ。metainfo の URL（raw.githubusercontent.com の URL）は、push してデフォルトブランチに入るまで読めないことを伝える。
+6. コミットしても、push は作者が望んだときだけ。metainfo の URL は、push してデフォルトブランチに入る（Pages などのデプロイで配るなら、デプロイが終わる）まで読めないことを伝える。
+7. push のあと、デプロイを待って、`.ukagaka/descript.txt` と `preview/sakura.png` の URL が実際に読めるか確かめる（`curl -sI <URL>` で 200 か）。デプロイ経由のときは、ここで初めて確かめられる。
 
 ## 関連
 
