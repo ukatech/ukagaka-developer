@@ -11,6 +11,10 @@
     to an existing .narignore that does not have it, so that they are not shipped in the nar. It also replaces the
     "include:tools/devkit.narignore" line that the old development kit wrote.
     -Workflow also creates .github/workflows/auto_check.yml (the dictionary check on GitHub Actions) when it is missing.
+    -Deploy creates .github/workflows/auto_deploy.yml (publishes the nar and the network update files to GitHub Pages
+    after the dictionary check passes, with scripts/build-site.ps1) when it is missing. It needs auto_check.yml (the
+    workflow is named "auto check"), the homeurl of the ghost changed to the address of the site, and the settings that
+    references/workflows/pages.md lists; nothing else is changed here.
     -DryRun only prints what would be done.
     Exit codes: 0 = done (or nothing to do), 1 = failed.
 .EXAMPLE
@@ -22,6 +26,7 @@
 param(
     [switch]$NarignoreDevBlock,
     [switch]$Workflow,
+    [switch]$Deploy,
     [switch]$DryRun,
     # Ghost root folder: the one that holds ghost/ and shell/ (default: found from the current folder upwards).
     [string]$GhostRoot
@@ -50,6 +55,20 @@ if ($Workflow) {
         if (-not $DryRun) { Write-DevkitTextFile $workflowPath (Read-DevkitTemplate 'github/auto_check.yml') }
         Write-Host "[$mode] .github/workflows/auto_check.yml"
     }
+}
+
+if ($Deploy) {
+    $deployPath = Join-Path $DevkitRoot '.github/workflows/auto_deploy.yml'
+    if (Test-Path -LiteralPath $deployPath) {
+        Write-Host '[exists] .github/workflows/auto_deploy.yml'
+    } else {
+        if (-not $DryRun) { Write-DevkitTextFile $deployPath (Read-DevkitTemplate 'github/auto_deploy.yml') }
+        Write-Host "[$mode] .github/workflows/auto_deploy.yml"
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $DevkitRoot '.github/workflows/auto_check.yml'))) {
+        Write-Host 'init-ghost: note - auto_deploy.yml starts after the workflow "auto check" (-Workflow creates auto_check.yml)'
+    }
+    Write-Host 'init-ghost: next - set Settings > Pages > Source to GitHub Actions and point homeurl to the site (references/workflows/pages.md)'
 }
 
 $narignorePath = Join-Path $DevkitRoot '.narignore'

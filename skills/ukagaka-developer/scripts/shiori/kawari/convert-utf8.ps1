@@ -42,6 +42,10 @@ $ErrorActionPreference = 'Stop'
 Initialize-DevkitConsole
 
 $ghostDir = Join-Path $DevkitRoot 'ghost/master'
+if ((Get-DevkitKawariMode $ghostDir) -eq 'kawari7') {
+    Write-Host 'convert-utf8: FAILED - this is a Phase 7 ghost (kawari.ini): its dictionaries are read in the encoding of locale in kawari.ini (a BOM wins), so a UTF-8 file without a BOM would be read as Shift_JIS. Convert them by hand, with locale changed or a BOM added (references/kawari/dictionary.md).'
+    exit 1
+}
 $version = Get-DevkitKawariVersion (Join-Path $ghostDir 'shiori.dll')
 if (-not ($version -and $version.Phase9) -and -not $Force) {
     Write-Host "convert-utf8: FAILED - shiori.dll is $(if ($version) { $version.Text } else { 'missing' }); Phase 8.2.x reads dictionaries only as Shift_JIS. Update it first (references/kawari/update.md), or give -Force."

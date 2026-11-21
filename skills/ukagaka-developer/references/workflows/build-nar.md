@@ -35,3 +35,4 @@ nar を作る・リリースする場面では、GitHub でゴーストを公開
 - metainfo: `references/workflows/metainfo.md`
 - `.narignore` / `.updateignore` の書き方: `references/layout.md`
 - GitHub Actions で自動リリースする: `references/workflows/ci.md`
+- GitHub Pages に nar とネットワーク更新ファイルを出す（`homeurl` の移し方も）: `references/workflows/pages.md`

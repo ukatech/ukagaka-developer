@@ -1,6 +1,6 @@
 # ukagaka-developer
 
-伺か（ukagaka）のゴーストを、AI と一緒に作る・直す・動かして確かめる・配布するための**スキル**です。対応する SHIORI は **YAYA**、**里々（SATORI）**、**華和梨（KAWARI）Phase 9**（Phase 8 のゴーストは、`shiori.dll` を Phase 9 に差し替えて扱えます）。
+伺か（ukagaka）のゴーストを、AI と一緒に作る・直す・動かして確かめる・配布するための**スキル**です。対応する SHIORI は **YAYA**、**里々（SATORI）**、**華和梨（KAWARI）Phase 9**（Phase 8 のゴーストは、`shiori.dll` を Phase 9 に差し替えて扱えます。Phase 7 のゴースト〔`kawari.ini`〕も、`shiori.dll` を 9.3.1 以降にすれば、辞書を書き換えずに 7 互換モードで扱えます）。
 
 日本語で「トークを書いて」「エラーを直して」「SSP で動かして見せて」と頼むだけで、AI が次のことをします。
 
@@ -22,7 +22,7 @@
 | | |
 |---|---|
 | AI と会話できる開発道具 | Claude Code、Codex、Antigravity など |
-| ゴースト | `ghost/master/descript.txt` と、`yaya.dll`（YAYA）、`satori.dll`（里々）、`shiori.dll` と `kawarirc.kis`（華和梨）のどれかがあるもの |
+| ゴースト | `ghost/master/descript.txt` と、`yaya.dll`（YAYA）、`satori.dll`（里々）、`shiori.dll` と `kawarirc.kis`（Phase 7 は `kawari.ini`）（華和梨）のどれかがあるもの |
 | Windows | チェックや SSP の操作を行うスクリプトが PowerShell で書かれています。Windows PowerShell 5.1 と PowerShell 7 の両方で動きます |
 | SSP 2.9.08 以降（推奨） | 動作確認、シェルの検査、nar の作成に使います。無くても辞書のチェックはできます |
 
@@ -109,6 +109,7 @@ yaya.dll を更新して
 | `AGENTS.md`、`CLAUDE.md` | `GHOST.md` を読むこと、スキルを使うことだけを書いた短い案内 |
 | `.narignore` ほか | nar から開発用のファイルを除く設定 |
 | `.github/workflows/auto_check.yml` | GitHub で push ごとに辞書チェック（任意） |
+| `.github/workflows/auto_deploy.yml` | 辞書チェックが通ったら、nar とネットワーク更新ファイルを GitHub Pages に出す（任意。`init-ghost.ps1 -Deploy`） |
 | `.github/ghost-checks.json` | そのゴースト独自の点検の登録（任意）。`check.ps1` と GitHub Actions で回る |
 
 ビルドした tamacs.exe と、SSP の場所の設定（`local.json`）は、スキルの更新で消えないよう、ホームフォルダ（`%LOCALAPPDATA%\ukagaka-developer`。環境変数 `UKADEV_HOME` で変えられます）に置かれます。

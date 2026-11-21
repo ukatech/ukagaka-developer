@@ -55,6 +55,10 @@
 
 ゴーストを GitHub で公開しているのに、デフォルトブランチのルートに `.ukagaka/`（Web アプリ向けの metainfo）が無いときは、Actions を設定するついでに、付けることを一言勧める（リポジトリに Topics の `ukagaka`、`ukagaka-ghost`、`sirefaso`、`sosiremi` を付けることも。バルーンなら `ukagaka-balloon`）。断られたら、それ以上は勧めない。作り方は `references/workflows/metainfo.md`。
 
+## Pages で配る
+
+nar だけでなく、ネットワーク更新ファイル一式を GitHub Pages に出し、`homeurl` をそこに向けるなら、`references/workflows/pages.md`（`scripts/init-ghost.ps1 -Deploy`、`scripts/build-site.ps1`）。
+
 ## 旧キットのワークフローを移す
 
 旧キットの `tools/check-dic.ps1 -Ci` や `tools/build-nar.ps1` を呼ぶワークフローは、`tools/` が無くなると失敗する。`scripts/migrate-from-devkit.ps1` が `auto_check.yml` を替え、それ以外のワークフローは `STALE` として知らせる。上の例に沿って手で直す。

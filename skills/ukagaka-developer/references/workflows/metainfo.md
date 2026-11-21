@@ -39,9 +39,8 @@ metainfo フォルダは、URL で読めればどこでもよい。**この URL 
 - **`githubrepo` だけでは足りないことがある。** SSP は既定ブランチを調べにいかず、`master` とみなして UUID を計算する。既定ブランチが `main` などのリポジトリでは、`metainfo` を明示する。
 - **Pages などのデプロイで配るとき**:
   - リポジトリには、規格どおり `.ukagaka/` を置く（ゴーストの `descript.txt` の `metainfo` が、デプロイ先の URL を指す）。nar と更新ファイルに入れたくなければ、`.narignore` に `/.ukagaka/` を足す。
-  - デプロイの処理は、`.ukagaka/` を出力に別に載せる必要がある。ゴーストごとの処理なので、そのゴーストのデプロイ用スクリプトに足す（このスキルには、そのスクリプトは入っていない）。更新ファイルの一覧（`updates2.dau`）には載せない。
-  - **先頭が `.` のフォルダは、`actions/upload-pages-artifact` v4 では隠しファイルとして除外される**（v4.0.0 のリリースノートに明記。v3 は含める）。v4 を使うなら、artifact を自前で作るか、フォルダ名を `.` で始めない名前にする（`metainfo` の URL はフォルダの名前を問わない）。Dependabot などで v4 に上がると、黙って公開されなくなるので、ワークフローに注釈を残す。
-  - ブランチから配る Pages（Jekyll が走る形）では、`.nojekyll` がないと `.` で始まるフォルダが隠れる。Actions の artifact で配る形では Jekyll は走らないが、`.nojekyll` を置いておけば、どちらでも同じに動く。
+  - デプロイの処理は、`.ukagaka/` を出力に別に載せる必要がある。`scripts/build-site.ps1`（`references/workflows/pages.md`）は、追跡されている `.ukagaka/` を出力にそのまま載せる。自前のデプロイ用スクリプトなら、同じ処理を足す。更新ファイルの一覧（`updates2.dau`）には載せない。
+  - **先頭が `.` のフォルダは、`actions/upload-pages-artifact` v4 では隠しファイルとして除外される**（v4.0.0 のリリースノートに明記。v3 は含める）。v4 を使うなら、artifact を自前で作るか、フォルダ名を `.` で始めない名前にする（`metainfo` の URL はフォルダの名前を問わない）。`scripts/build-site.ps1` と `templates/github/auto_deploy.yml` は v3 で、`.nojekyll` も置く（`references/workflows/pages.md`）。ブランチから配る Pages（Jekyll が走る形）では、`.nojekyll` がないと `.` で始まるフォルダが隠れる。
 
 ## GitHub の Topics
 

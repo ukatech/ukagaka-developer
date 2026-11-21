@@ -1,0 +1,114 @@
+name: auto deploy
+
+# Publishes the nar and the network update files (and, when the ghost has them, the introduction page site/ and the
+# metainfo folder .ukagaka/) to GitHub Pages, and puts the same nar on GitHub Releases (tag "latest").
+# The address of the Pages site is what "homeurl" of the ghost (and of its balloons) must point to.
+# Set "Settings > Pages > Build and deployment > Source" of the repository to "GitHub Actions".
+# How to set it up: references/workflows/pages.md of the ukagaka-developer skill.
+
+on:
+  workflow_run:
+    workflows: ["auto check"]
+    types:
+      - completed
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Do not run two deployments at once, and do not cancel one that is running
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build site
+    runs-on: ubuntu-latest
+    # Only after the dictionary check has passed (or when started by hand)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          # The commit that the dictionary check ran on
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          # The system dictionary of YAYA is a submodule
+          submodules: recursive
+
+      - name: get ukagaka-developer
+        # The scripts of the skill. To pin a version, add "--branch <tag or branch>" (see references/workflows/ci.md).
+        shell: pwsh
+        run: git clone --depth 1 https://github.com/ukatech/ukagaka-developer.git "$env:RUNNER_TEMP/ukagaka-developer"
+
+      - name: build the nar and the update files
+        # .narignore decides what is in the nar, .updateignore what is in updates2.dau and published.
+        # The output goes to build/site. site/ (the introduction page) is copied into it when it exists.
+        shell: pwsh
+        run: '& "$env:RUNNER_TEMP/ukagaka-developer/skills/ukagaka-developer/scripts/build-site.ps1" -OutDir build/site -GhostRoot $env:GITHUB_WORKSPACE'
+
+      # The same nar is also put on GitHub Releases (see the release job)
+      - name: keep the nar for the release
+        uses: actions/upload-artifact@v4
+        with:
+          name: nar
+          path: build/site/*.nar
+          if-no-files-found: error
+
+      - name: configure pages
+        uses: actions/configure-pages@v5
+
+      - name: upload
+        # Keep v3: v4 leaves out hidden files, and the metainfo folder .ukagaka/ is one
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/site
+
+  deploy:
+    name: deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  release:
+    name: publish the nar to Releases
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      # The release always points at the commit that was checked and deployed
+      TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: download the nar
+        uses: actions/download-artifact@v4
+        with:
+          name: nar
+          path: release
+
+      # Keep exactly one release (tag "latest") holding only the newest nar: delete the previous one together with its
+      # tag, then create it again. The asset keeps the same file name, so
+      # https://github.com/<owner>/<repo>/releases/latest/download/<name>.nar never changes.
+      - name: replace the release
+        run: |
+          if gh release view latest >/dev/null 2>&1; then
+            gh release delete latest --cleanup-tag --yes
+          fi
+          gh release create latest release/*.nar \
+            --target "$TARGET_SHA" \
+            --title "latest (${TARGET_SHA::7})" \
+            --notes "Latest nar, built from commit ${TARGET_SHA}. Older files are removed on every deploy." \
+            --latest

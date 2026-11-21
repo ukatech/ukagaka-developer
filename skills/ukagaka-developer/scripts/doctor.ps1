@@ -58,10 +58,9 @@ if ($shioriId) {
     Add-DevkitShioriDoctorItems -Ps $ps -IsGitWorkingCopy $isGitWorkingCopy
     $tamacsPurpose = $DevkitTamacsPurpose
 } else {
-    $unsupported = Get-DevkitUnsupportedShioriReason
     Add-DoctorItem -Id 'ghost' -Name 'ghost files' -Level 'required' -Ok $false `
         -Purpose "The ghost itself, and a SHIORI that the skill supports: $DevkitShioriSupported" `
-        -Detail $(if ($unsupported) { $unsupported } else { 'no supported SHIORI was found in ghost/master, and descript.txt has no shiori key for them' }) `
+        -Detail 'no supported SHIORI was found in ghost/master, and descript.txt has no shiori key for them' `
         -Fix 'Work in the ghost root folder (the one that contains ghost/ and shell/). Other SHIORI are not supported yet.'
 }
 

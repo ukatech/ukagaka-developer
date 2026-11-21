@@ -4,12 +4,12 @@
 # The headers that the scripts send as SSP does, in UTF-8. YAYA reads the charset it answers in from yaya.txt instead.
 $DevkitShioriBaseHeaders = @('Charset: UTF-8', 'Sender: SSP', 'SecurityLevel: local')
 
-# The start of a script of a SHIORI: finds the folder of the SHIORI (default: ghost/master) and checks that the files in
-# $Required are there. Returns Ok (and Code, the exit code to use, when not), GhostDir (full path), Base (the ghost
+# The start of a script of a SHIORI: finds the folder of the SHIORI (default: ghost/master) and checks that every file in
+# $Required, and one of the files in $AnyOf (kawarirc.kis or kawari.ini), is there. Returns Ok (and Code, the exit code to use, when not), GhostDir (full path), Base (the ghost
 # root of that folder: paths in the output are shown relative to it) and Prefix (the path of GhostDir relative to the
 # ghost root of this run, with a trailing slash, or ''). Writes "<Label>: FAILED - ..." when a file is missing.
 function Resolve-DevkitShioriGhostDir {
-    param([string]$Label, [string]$GhostDir, [string[]]$Required)
+    param([string]$Label, [string]$GhostDir, [string[]]$Required = @(), [string[]]$AnyOf = @())
     if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
     $GhostDir = (Resolve-DevkitFullPath $GhostDir).TrimEnd('\', '/')
     $prefix = ''
@@ -24,6 +24,14 @@ function Resolve-DevkitShioriGhostDir {
             $result.Ok = $false
             $result.Code = 1
             break
+        }
+    }
+    if ($result.Ok -and $AnyOf.Count -gt 0) {
+        $found = @($AnyOf | Where-Object { Test-Path -LiteralPath (Join-Path $GhostDir $_) })
+        if ($found.Count -eq 0) {
+            Write-Host "${Label}: FAILED - $($AnyOf -join ' or ') was not found in $GhostDir"
+            $result.Ok = $false
+            $result.Code = 1
         }
     }
     return $result

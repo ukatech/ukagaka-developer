@@ -1,6 +1,6 @@
 # 華和梨辞書の書き方の要点
 
-華和梨（KAWARI）のゴーストの辞書（`ghost/master/kawarirc.kis` と、そこから `load` する辞書）を書くときの要点。対象は **Phase 9 の `shiori.dll`**（Phase 8 の辞書は、そのまま Phase 9 で動く）。仕様書は kawari-docs（https://ukatech.shillest.net/kawari-docs/ 。リポジトリ: https://github.com/ukatech/kawari-docs ）。ここに書いた要点は、そこで確かめたもの。構文や KIS コマンドは推測で書かず、kawari-docs で確かめる（ukagaka-doc MCP なら `source` に `kawari_docs`。`SKILL.md` の「仕様を調べる」）。ゴースト固有の決まり（どの辞書ファイルに何を書くか、イベントのエントリ名の付け方、キャラクター、口調）は `GHOST.md` にある。
+華和梨（KAWARI）のゴーストの辞書（`ghost/master/kawarirc.kis` と、そこから `load` する辞書）を書くときの要点。対象は **Phase 9 の `shiori.dll`**（Phase 8 の辞書は、そのまま Phase 9 で動く。`kawarirc.kis` が無く `kawari.ini` がある Phase 7 のゴーストは、9.3.1 以降の 7 互換モードで動く。下の「Phase 7 のゴースト」）。仕様書は kawari-docs（https://ukatech.shillest.net/kawari-docs/ 。リポジトリ: https://github.com/ukatech/kawari-docs ）。ここに書いた要点は、そこで確かめたもの。構文や KIS コマンドは推測で書かず、kawari-docs で確かめる（ukagaka-doc MCP なら `source` に `kawari_docs`。`SKILL.md` の「仕様を調べる」）。ゴースト固有の決まり（どの辞書ファイルに何を書くか、イベントのエントリ名の付け方、キャラクター、口調）は `GHOST.md` にある。
 
 kawari-docs の構成: `startup/`（導入）、`grammar/`（辞書の文法）、`shiori/`（SHIORI としての動作、イベント、ランダムトーク、SAORI）、`kis/`（KIS コマンド。1 コマンド 1 ページ、一覧は `kis/index.md`）、`kosui/`（幸水と `kosui --check`）、`tips/`、`migration/`（Phase 7 以前からの移行）、`spec/`（仕様書、BNF）、`other/`（`error-messages.md`、`changelog.md`）。生の Markdown は `https://ukatech.shillest.net/kawari-docs/kis/set.md` のように、リポジトリと同じパスで読める。
 
@@ -14,7 +14,7 @@ kawari-docs の構成: `startup/`（導入）、`grammar/`（辞書の文法）�
   
   新しいイベントは、そのゴーストの振り分けが呼ぶ名前で書く。わかったことは `GHOST.md` の「イベントと辞書ファイルの対応」に書いておく。
 - **コールバックのエントリは、全部の単語を順に評価してつなげる**（普通のエントリのように 1 つを選ぶのではない）。`System.Callback.OnGET` をもう 1 か所で定義すると、両方が動いて出力がつながる。ミドルウェアの入ったゴーストに、別の振り分けを書き足さない。
-- **辞書ファイルの一覧と読み込み順**は `kawarirc.kis` の `=kis` の中の `load ファイル名;` の並び。ファイル名と拡張子は自由（`dict-*.txt`、`ghost-*.txt` などは推奨にすぎない）。`kawari.ini` は Phase 8 以降は読まれない（`load kawari.ini;` のように辞書として読ませているゴーストはある）。
+- **辞書ファイルの一覧と読み込み順**は `kawarirc.kis` の `=kis` の中の `load ファイル名;` の並び。ファイル名と拡張子は自由（`dict-*.txt`、`ghost-*.txt` などは推奨にすぎない）。`kawari.ini` は、`kawarirc.kis` があるゴーストでは読まれない（`load kawari.ini;` のように辞書として読ませているゴーストはある）。`kawarirc.kis` が無く `kawari.ini` があるゴーストは Phase 7 のゴーストで、辞書の読み込み順も書き方も別（下の「Phase 7 のゴースト」）。
 - **文字コードを確かめる**（下の「文字コード」）。`scripts/doctor.ps1` の `UTF-8 dictionaries` が、Shift_JIS の辞書を挙げる。
 
 ## 辞書の書き方
@@ -35,7 +35,7 @@ kawari-docs の構成: `startup/`（導入）、`grammar/`（辞書の文法）�
 - **置換**（入れ子にでき、内側から評価される）:
   - `${エントリ}`: 単語を 1 つ選んで評価する。無いエントリは**黙って空文字列**になる（綴りの誤りが見つかりにくい。`scripts/lint.ps1` が K-W2001 で見つける）。`${event.${System.Request.ID}}` のように名前を組み立てられる。
   - `$エントリ[式]`: 指定位置の単語（0 から。負なら末尾から）。
-  - `$[ 式 ]`: 演算式。**整数のみ（32bit）**。演算子は C 風（`+ - * / % ** == != < <= > >= && || !`、`=~` は部分文字列を含むか）。数値に見えるものは数値として比べる（`"001" == "1"` は真。文字列として比べるのは `compare`）。結果は `true` / `false`。**偽は `""` `"0"` `"false"` だけ**。
+  - `$[ 式 ]`: 演算式。**整数のみ（64bit。9.3.1 までは 32bit）**。演算子は C 風（`+ - * / % ** == != < <= > >= && || !`、`=~` は部分文字列を含むか）。数値に見えるものは数値として比べる（`"001" == "1"` は真。文字列として比べるのは `compare`）。結果は `true` / `false`。**偽は `""` `"0"` `"false"` だけ**。
   - `$( コマンド 引数 ; コマンド 引数 )`: インラインスクリプト（KIS）。
   - `${0}` `${1}` …: 同じ単語の中で先に置換した結果。集合演算 `${A & B}` `${A + B}` `${A - B}`。
 - **KIS の文**: `$(if 条件 真の文 else if 条件2 文2 else 偽の文)`（`else` の前後に空白か改行）。`if` `while` `until` `loop` `foreach` `function` `lambda` `return` `silent` などの**構文コマンドは、使う枝だけを評価する**。それ以外の**関数コマンドは、引数を先に全部展開してから実行する**。`$( )` の最後の文以外は、構文コマンドの後にも `;` が要る。
@@ -49,6 +49,18 @@ kawari-docs の構成: `startup/`（導入）、`grammar/`（辞書の文法）�
 - **SAORI**: `=kis` の中で `saoriregist saori\foo.dll 別名 [preload|loadoncall|noresident];`、呼ぶのは `$(callsaori 別名 引数...)`（`callsaorix 別名 格納エントリ 引数...` は `格納エントリ.Value0` などにも入る）。本体内蔵の `internal_*` は登録なしで呼べる（Phase 9）。
 - **保存**: 変数（エントリ）は自動では保存されない。辞書が `save ファイル エントリ...`（`savecrypt` は暗号化）で書き、起動時に `load` で読み戻す。どのファイルに保存しているかは `GHOST.md` に書いておく。Phase 9 の `save` は UTF-8（BOM あり）で書く。
 - **セキュリティ**: 外部（`SecurityLevel` が local でない要求）からは、本体との通信や SAORI over DirectSSTP が使えない。`securitylevel` は初期化中に 1 回だけ設定できる（既定は high）。
+
+## Phase 7 のゴースト（7 互換モード）
+
+`ghost/master/` に `kawarirc.kis` が無く `kawari.ini` があるゴースト（Phase 7.x。`scripts/doctor.ps1` が「a Phase 7 ghost」と表示する）は、`shiori.dll` を **9.3.1 以降**に差し替えるだけで、辞書を書き換えずに 7.5.0 の動作で動く（`references/kawari/update.md`。9.3.3 以降を勧める。9.3.0 は SHIORI/3.0 に答えず、9.3.2 までは resource の Reference が届かない）。**Phase 8 以降の書き方に直す必要はない**。直すときは kawari-docs の `migration/`。仕様は kawari-docs の `spec/07-kawari7-compat.md`。Phase 8 以降の辞書とは別物なので、上の「辞書の書き方」をそのまま当てはめない。
+
+- **初期化ファイルは `kawari.ini`。** 1 行に 1 つ、`キー : 値`（`#` で始まる行はコメント）。`dict : ファイル名` が辞書で、**書かれた順に**読まれる。ほかに `include`（別の ini）、`text`（テキストを行ごとに読む）、`adddict` `set`（エントリに単語を入れる）、`saori : DLL , 別名 , オプション`、`randomseed`、`security`、`locale`（辞書の文字コード）、`debug : log`。辞書を足すときは、`dict` の行も足す。
+- **辞書の行**は `エントリ名 [, エントリ名]... : 単語 [, 単語]...`（`,` で単語を区切る）。`#` で始まる行がコメント。`:` で始まる行は読み飛ばされ、`[` で始まる行はコミュニケートのマッチエントリ、`!` で始まる行は暗号化行。`[SAKURA]` で始まるファイルはピロ形式（`#ラベル` の次の行が単語。`pirocall` で呼ぶ）。引用符は `"` だけで、`\"` 以外のバックスラッシュは普通の文字。
+- **エントリ名は平坦な文字列**で、`.` で階層に分けない（`a.b` と `a` は別のエントリ）。要求は SHIORI/3.0 で届き、`ID` に大文字を含むものはイベントとして `event.<ID>`（`event.OnBoot`）、全部小文字のものは resource として `resource.<ID>`（`resource.homeurl`）を評価する。`Reference0` 以降は `system.Reference0` 以降に、ID は `system.EventName` に入る（`system.` の名前は小文字。Phase 8 以降の `System.Request.*` ではない）。`event.<ID>` が無いと `system.OnEventUnknown`、コミュニケートは `system.OnResponse` などを見る。
+- **置換と KIS**: `${エントリ}`、`$(コマンド 引数 ; コマンド 引数)` は同じだが、`if 条件 真 偽`（`else` は構文ではない）、`expr 式`（引数を 1 トークンずつ読む）、`test`、`array`、`get` などは 7.5.0 の意味で動く。Phase 8 以降の `=kis` 〜 `=end` と、単語の中の `$[ 式 ]` だけは、Phase 8 以降の文法で書ける（取り込んだ範囲の中は最後まで Phase 8 以降の意味）。単語の中で `$[` を文字として使うときは `"$["`。未定義のコマンドやエントリは、エラーにならず空文字になる。
+- **保存**: `save` / `savecrypt` は UTF-8（BOM あり）で書く（7.5.0 は Shift_JIS）。7.5.0 が書いたセーブデータは読める。ゴーストを 7.5.0 の `shiori.dll` に戻す可能性があるなら、セーブデータをバックアップしておく。
+- **文字コード**は `kawari.ini` の `locale`（Shift_JIS など）に従い、**BOM があるファイルは `locale` に関わらず UTF-8**。`locale` が無ければ、内容から UTF-8 か Shift_JIS かを判定する。`locale : Shift_JIS` のゴーストで、BOM なしの UTF-8 のファイルを足すと化ける。Shift_JIS の辞書を UTF-8 前提の道具で編集しない点は、下の「文字コード」と同じ。**`convert-utf8.ps1` は使えない**（止まる）。UTF-8 にしたいときは、BOM を付けるか `locale : UTF-8` に変える手作業になるので、作者に確かめる。
+- **確かめ方**: `scripts/shiori.ps1 -Event OnBoot` や `-Eval '${エントリ}'` は、ゴーストの `shiori.dll` を一時コピーで動かし、7 の単語として評価する。実行時の誤り（未定義のコマンドは `K-E0028`、引数の数は `K-W1001`）は、このときの診断に出る。`scripts/check-dic.ps1`（kosui の安全モード）は、読み込みの誤りだけを調べる。`scripts/lint.ps1` は 7 の単語を調べないので何もしない。つまり、**書いた単語は `shiori.ps1` で実際に動かして確かめる**。`check-dic.ps1 -Event` は使えない。
 
 ## 文字コード
 
@@ -77,7 +89,7 @@ kawari-docs の構成: `startup/`（導入）、`grammar/`（辞書の文法）�
 - 台詞の中の `,` `(` `)` `"` `$` をそのまま書く。`,` は単語の区切りに、`( )` はブロックになって消える。`"..."` で囲む。
 - 行末にコメントを書く（単語の一部になる）。
 - `${E}` と `$(get E)` の取り違え。`get` は全単語をつなげて返す。
-- `$([ ... ])`（Phase 7 の書き方。K-W2002 `unknown command "["`）。Phase 8 以降は `$[ ... ]`。
+- `$([ ... ])`（Phase 7 の書き方。K-W2002 `unknown command "["`）。Phase 8 以降のゴーストでは `$[ ... ]`（Phase 7 のゴーストの 7 互換モードでは、`[ 式 ]` のままでよい）。
 - コマンドの綴りの誤り（`serstr`）。未定義のコマンドは K-E0028 だが、辞書を読み込むだけでは実行されない単語の中のものは出ない。`scripts/lint.ps1` が K-W2002 で全部見つける。
 - `function` を辞書定義ゾーンのエントリの中に書く（そのエントリが呼ばれるまで定義されない）。`=kis` の中に書く。
 - 正規表現のパターンの括弧を囲まない（K-W2003）、`regex_replace` の置換文字列の `${1}` を囲まない（K-W2004）。

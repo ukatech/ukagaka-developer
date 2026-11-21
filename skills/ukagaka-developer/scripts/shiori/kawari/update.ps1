@@ -10,6 +10,9 @@
     Phase 8 to Phase 9: the dictionaries run unchanged, but shiori.dll of Phase 9 writes save files (save, savecrypt)
     in UTF-8 with a BOM, which Phase 8.2.9 and older cannot read. Going back to Phase 8 after the ghost has saved
     breaks its saved data, so the save files are worth a backup before the first run.
+    Phase 7: a ghost with kawari.ini and no kawarirc.kis runs on shiori.dll of 9.3.1 or later as it is (the 7
+    compatible mode; 9.3.3 or later is better), so replacing shiori.dll is all there is to do. The same note about the save
+    files applies. An older release is refused for such a ghost.
     Before the file is replaced, the new shiori.dll is loaded in an empty temporary folder (a kawarirc.kis that defines
     nothing, so no dictionary code and no SAORI of the ghost runs) and asked for the "version" resource; when it does
     not answer, nothing is changed. After the file is replaced, the dictionaries are checked with
@@ -109,6 +112,10 @@ try {
     $newVersion = Get-DevkitKawariVersion $newDll
     Write-Host "new     : shiori.dll $($newVersion.Text)"
     if (-not $newVersion.Phase9) { throw "the shiori.dll of this release is $($newVersion.Text); the skill supports Phase 9" }
+    $sevenMode = ((Get-DevkitKawariMode $GhostDir) -eq 'kawari7')
+    if ($sevenMode -and -not $newVersion.Compat7) {
+        throw "this ghost is a Phase 7 ghost (kawari.ini, no kawarirc.kis), which needs shiori.dll of 9.3.1 or later; the release is $($newVersion.Text)"
+    }
 
     $same = (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash -eq (Get-FileHash -LiteralPath $newDll -Algorithm SHA256).Hash
     $older = $oldVersion.Number -and $newVersion.Number -lt $oldVersion.Number
@@ -117,7 +124,9 @@ try {
     } elseif ($older -and -not $Tag -and -not $Force) {
         Write-Host 'update-kawari: the release is older than the current shiori.dll, so nothing was changed. -Tag or -Force installs it'
     } else {
-        if (-not $oldVersion.Phase9) {
+        if ($sevenMode -and -not $oldVersion.Compat7) {
+            Write-Host 'update-kawari: note - this Phase 7 ghost will run in the 7 compatible mode of Phase 9.3; save files (save, savecrypt) are then written in UTF-8 with a BOM, which Phase 7 and 8 cannot read back; back the save files up if the ghost may go back'
+        } elseif (-not $oldVersion.Phase9) {
             Write-Host 'update-kawari: note - Phase 9 writes save files (save, savecrypt) in UTF-8 with a BOM, which Phase 8.2.9 and older cannot read; back the save files up if the ghost may go back to Phase 8'
         }
         Write-Host ('  replace  ghost/master/shiori.dll  {0} -> {1}' -f $oldVersion.Text, $newVersion.Text)

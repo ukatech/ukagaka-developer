@@ -14,6 +14,8 @@
     line right above the line (KAWARI comments are whole lines that start with #):
         # lint:disable-next-line=K-W2001, K-W2003
     The errors and warnings of loading are reported by scripts/check-dic.ps1, not here.
+    A ghost of Phase 7 (kawari.ini, no kawarirc.kis) has nothing to check here: kosui.exe does not look at the words of
+    Phase 7. The script says so and ends with 0.
     Exit codes: 0 = OK (findings are warnings; with -Strict they fail), 1 = findings with -Strict, or kosui.exe could
     not check the dictionaries, 3 = not checked (kosui.exe is not installed or too old).
 .EXAMPLE
@@ -21,7 +23,7 @@
 #>
 [CmdletBinding()]
 param(
-    # Folder that contains kawarirc.kis (default: ghost/master).
+    # Folder that contains kawarirc.kis, or kawari.ini of a Phase 7 ghost (default: ghost/master).
     [string]$GhostDir,
     # Fail when there are findings.
     [switch]$Strict,
@@ -36,9 +38,13 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-$ghost = Resolve-DevkitShioriGhostDir 'lint' $GhostDir 'kawarirc.kis'
+$ghost = Resolve-DevkitShioriGhostDir -Label 'lint' -GhostDir $GhostDir -AnyOf @('kawarirc.kis', 'kawari.ini')
 if (-not $ghost.Ok) { exit $ghost.Code }
 $GhostDir = $ghost.GhostDir
+if ((Get-DevkitKawariMode $GhostDir) -eq 'kawari7') {
+    Write-Host 'lint: SKIPPED - the static check of kosui.exe does not read the words of a Phase 7 ghost (kawari.ini); nothing to check'
+    exit 0
+}
 $kosui = Get-DevkitShioriTool 'lint' 'kosui'
 if (-not $kosui.Path) { exit 3 }
 

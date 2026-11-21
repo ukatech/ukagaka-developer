@@ -4,6 +4,10 @@
 .DESCRIPTION
     Exit codes: 0 = OK (warnings do not fail the check unless -Strict is given), 1 = errors found, 3 = not checked
     (kosui.exe is not installed or too old: run scripts/setup.ps1).
+    A ghost of Phase 7 (kawari.ini, no kawarirc.kis) is read from kawari.ini in the 7 compatible mode, which needs
+    kosui.exe 9.3.1 or later. Its words are Phase 7 words: only what loading reports is found (a file that cannot be
+    read, =kis zones), the commands of Phase 7 report no error for an unknown name, and -Event is not available
+    (scripts/shiori.ps1 -Event runs an event with the ghost's own shiori.dll).
     kosui.exe comes from the latest release of ukatech/kawari (scripts/tools.json, downloaded by setup.ps1 into the
     home folder). It reads ghost/master/kawarirc.kis, and every dictionary that it loads, in its safe mode: no file is
     written (save, textsave, logfile and so on succeed without writing), no SAORI is loaded (callsaori returns an
@@ -27,7 +31,7 @@
 #>
 [CmdletBinding(PositionalBinding = $false)]
 param(
-    # Folder that contains kawarirc.kis (default: ghost/master).
+    # Folder that contains kawarirc.kis, or kawari.ini of a Phase 7 ghost (default: ghost/master).
     [string]$GhostDir,
     # Events to run after loading (GET with this ID). Several are run one after another.
     [string[]]$Event,
@@ -50,14 +54,25 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-$ghost = Resolve-DevkitShioriGhostDir 'check-dic' $GhostDir 'kawarirc.kis'
+$ghost = Resolve-DevkitShioriGhostDir -Label 'check-dic' -GhostDir $GhostDir -AnyOf @('kawarirc.kis', 'kawari.ini')
 if (-not $ghost.Ok) { exit $ghost.Code }
 $GhostDir = $ghost.GhostDir
+$sevenMode = ((Get-DevkitKawariMode $GhostDir) -eq 'kawari7')
 $kosui = Get-DevkitShioriTool 'check-dic' 'kosui'
 if (-not $kosui.Path) { exit 3 }
 $dllVersion = Get-DevkitKawariVersion (Join-Path $GhostDir 'shiori.dll')
 $kosuiVersion = Get-DevkitKawariVersion $kosui.Path
 Write-Host "check-dic: kosui.exe $($kosuiVersion.Text) (the ghost's shiori.dll: $(if ($dllVersion) { $dllVersion.Text } else { 'none' }))"
+if ($sevenMode) {
+    if (-not $kosuiVersion.Compat7) {
+        Write-Host "check-dic: SKIPPED - this is a Phase 7 ghost (kawari.ini), which kosui.exe 9.3.1 or later reads in the 7 compatible mode. Update it: scripts/setup.ps1 -Tool kosui -Force"
+        exit 3
+    }
+    if ($Event) {
+        Write-Host 'check-dic: -Event is not available for a Phase 7 ghost; run an event with scripts/shiori.ps1 -Event instead'
+        exit 1
+    }
+}
 
 $kosuiArgs = @('--no-lint')
 if ($Decl) { $kosuiArgs += '--decl' }

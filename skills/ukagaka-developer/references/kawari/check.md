@@ -12,6 +12,8 @@
 
 まず `check.ps1` で上の 2 つを行い、直したトークやイベントは `shiori.ps1` で実際に呼ぶ。kosui.exe は `scripts/setup.ps1` がホームフォルダに入れる（無いと `SKIPPED`、終了コード 3）。
 
+**Phase 7 のゴースト**（`kawari.ini`）は、上の 2 つでは、ほとんど何も見つからない。直したものは**必ず `shiori.ps1` で動かして確かめる**（詳しくは `references/kawari/dictionary.md` の「Phase 7 のゴースト」）。
+
 ## 診断の書式
 
 どれも華和梨 Phase 9.2 の書式で、パスはゴーストのルートからの相対にして出す。
@@ -90,7 +92,7 @@ K-E0011、0012、0014、0019、0024、0031 は華和梨の内部エラー（ふ�
 `-Event` や `-Eval` の応答のあとに、その処理中に華和梨が出したエラー・警告を、上と同じ書式で出す（`messages while handling the request`）。終了コード 2 なら、表示された位置を直す。読み込みのときの診断（`messages while loading the dictionaries`）は check-dic と同じものなので、そちらで直す。`-Decl` で K-W0003 も出す。使い方は `references/kawari/commands.md`。
 
 - `shiori.ps1` は `shiori.dll` を `ghost/master` の一時コピーで動かし、一時コピーの `kawarirc.kis` の最初と最後にログの設定（`logfile` / `loglevel`）を足して、そのログを読む。表示する行番号は本物のファイルのもの。
-- `shiori: SKIPPED - shiori.dll is ...` は、`shiori.dll` が Phase 9 でない。`references/kawari/update.md`。
+- `shiori: SKIPPED - shiori.dll is ...` は、`shiori.dll` が Phase 9 でない（Phase 7 のゴーストでは 9.3.1 より古い）。`references/kawari/update.md`。
 
 ## 関連
 

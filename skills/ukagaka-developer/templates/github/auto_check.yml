@@ -25,7 +25,7 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: 'if (Test-Path "$env:GITHUB_WORKSPACE/ghost/master/kawarirc.kis") { & "$env:RUNNER_TEMP/ukagaka-developer/skills/ukagaka-developer/scripts/setup.ps1" -Tool kosui -GhostRoot $env:GITHUB_WORKSPACE }; exit 0'
+        run: 'if ((Test-Path "$env:GITHUB_WORKSPACE/ghost/master/kawarirc.kis") -or (Test-Path "$env:GITHUB_WORKSPACE/ghost/master/kawari.ini")) { & "$env:RUNNER_TEMP/ukagaka-developer/skills/ukagaka-developer/scripts/setup.ps1" -Tool kosui -GhostRoot $env:GITHUB_WORKSPACE }; exit 0'
       - name: dictionary check
         # YAYA and SATORI: builds tamacs.exe with csc.exe of the .NET Framework on the runner, loads the SHIORI dll
         # with it and reads its log. KAWARI: kosui --check (found from ghost/master)

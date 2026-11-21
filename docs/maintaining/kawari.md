@@ -2,11 +2,11 @@
 
 `scripts/shiori/kawari/` の作りと、そうした理由。華和梨本体は https://github.com/ukatech/kawari 、仕様は https://ukatech.shillest.net/kawari-docs/ 。
 
-## 対象は Phase 9
+## 対象は Phase 9（と、Phase 7 の 7 互換モード）
 
 - スクリプトは `shiori.dll` が Phase 9 のゴーストだけを扱う。Phase 9 は Phase 8 の辞書をそのまま動かせるので、Phase 8 のゴーストは `update-shiori.ps1` で `shiori.dll` を差し替えて対象にする（doctor の `KAWARI Phase 9` が required）。Phase 8.2.x の dll を直接扱わない理由: 応答が常に Shift_JIS、診断の書式が違う（9.2.0 で `ファイル(行): error K-E0028: 本文` にそろった）、UTF-8 の辞書を読まない。
-- Phase 7 以前（`kawari.ini` だけで `kawarirc.kis` が無い）は辞書の書き方が違い、差し替えでは動かないので対象外。`Get-DevkitUnsupportedShioriReason`（`scripts/lib/common.ps1`）が見分けて知らせる。
-- 判別: `shiori.dll` はほかの SHIORI も使う名前なので、`$DevkitShioriTable` の `Marker`（`kawarirc.kis`）があるときだけ華和梨とみなす。
+- Phase 7（`kawari.ini` があり `kawarirc.kis` が無い）は、9.3.0 以降の 7 互換モードで、辞書を書き換えずに動く。`Get-DevkitKawariMode`（`scripts/shiori/kawari/lib.ps1`）が `kawari7` / `kawari9` を見分け、`Get-DevkitKawariRcName` が最初に読むファイル（`kawari.ini` / `kawarirc.kis`）を返す。スクリプトが使う最低の版は **9.3.1**（`$DevkitKawari7MinimumVersion`。9.3.0 は SHIORI/2.x だけに答え、tamacs.exe は 3.0 を送る）。9.3.3 で resource の Reference が届く。kosui.exe も 9.3.1 以降でないと、`kawari.ini` を辞書として読んで何も見つけない（診断が空で通ってしまう）ので、`Invoke-DevkitKosuiCheck` と check-dic が版を確かめる。Phase 6 以前は対象外。
+- 判別: `shiori.dll` はほかの SHIORI も使う名前なので、`$DevkitShioriTable` の `Marker`（`kawarirc.kis` か `kawari.ini` のどちらか）があるときだけ華和梨とみなす。
 - 版: Phase 9（8.2.9 から）はファイルのバージョン情報を持つ。無いものは 8.2.8 以前で、多くは UPX で圧縮されていて中の `KAWARI.kdt/x.y.z` も読めない。`Get-DevkitKawariVersion` は「Phase 9 より前」とだけ言う。
 
 ## 2 つの道具
@@ -35,6 +35,10 @@
 - `-Eval` のときだけ、末尾に `copy System.Callback.OnGET devkit.OnGET; clear System.Callback.OnGET;` と、新しい `System.Callback.OnGET : $(if $[ ${System.Request.ID} == "devkit.eval" ] $(eval ${System.Request.Reference0}) else $(get devkit.OnGET))` を足す。華和梨はコールバックの全単語を評価してつなげるので、元の定義は `$(get ...)` で呼ぶ（`${}` は 1 つしか選ばない）。
 - 診断の行番号: 先頭に足した行の数（`HeadLines`）だけ `kawarirc.kis` の行を戻す。元の行数（`RcLines`）より後ろは末尾に足したゾーンなので、`<-Eval of scripts/shiori.ps1>` と表示する。呼び出しの連鎖の中の位置も同じように直す。
 - 要求は `Charset: UTF-8`（華和梨は要求の文字コードで応答する。無ければ Shift_JIS）。辞書が `System.Response.Charset` を Shift_JIS にすると応答は Shift_JIS になるが、tamacs.exe は UTF-8 として読むので化ける（`commands.md` に注記だけしてある）。
+
+### 7 互換モードの一時コピー
+
+`kawarirc.kis` が無いので、ログの設定は `devkit-kawari-head.txt` と `devkit-kawari-tail.txt`（どちらも ASCII）に書き、コピーの `kawari.ini` の最初と最後に `dict : ...` の行を足す（`dict` は `kawari.ini` を読み終えてから、書かれた順に読まれる）。7 の辞書でも `=kis` 〜 `=end` は 9 の文法で読まれ、`logfile` / `loglevel` が効く（9.3.3 で確かめた）。`-Eval` は、`System.Callback.OnGET` が無いので、tail に `event.devkit.Eval : $(eval ${system.Reference0})` を足し、ID `devkit.Eval` で送る。ID に大文字が要るのは、全部小文字だと resource として `resource.<ID>` に行くため。ファイルが別なので、診断の行番号を戻す処理は要らない（`HeadLines` が 0）。診断のコードと書式は 9 と同じ（未定義のコマンドは `K-E0028`。ただし `check-dic` の `--check` は 7 の単語に何も言わない。`lint` は 7 の単語を調べない）。`convert-utf8.ps1` は止まる: 7 の辞書の文字コードは `kawari.ini` の `locale` で決まり、BOM のない UTF-8 は `locale : Shift_JIS` で化ける。
 
 ## tamacs.exe の `--no-loghandler`
 

@@ -18,6 +18,7 @@ tamacs.exe で `yaya.dll` に辞書を実際に読み込ませ、YAYA が出す 
 - **`assignment in condition`**: `==` の書き間違いのことが多いので確かめる。
 - **`unused function / variable / local variable`**: 報告だけにして、勝手に消さない。
 - 文字列の中で組み立てた名前（`EVAL('Mouse' + _part)` など）で呼ばれる関数は、未使用に見える。そういう関数は、辞書に `OnSHIORI3FW.Lint.UsedFunctions` という関数を書き、名前の正規表現の配列を返すと報告されなくなる（グローバル変数は `OnSHIORI3FW.Lint.UsedVariables`）。例: `OnSHIORI3FW.Lint.UsedFunctions { (IARRAY, '^Mouse', '^TalkTo') }`。作者に確かめてから足す。
+- yaya-dic（2026 年 10 月末以降）は、同じ検査を、里々の `ShioriLint` と同じ形式のイベントでも行える（`SecurityLevel: local` の `GET` で `ID: ShioriLint`。指摘は `ErrorLevel` と `ErrorDescription` のヘッダで返る）。`scripts/lint.ps1` は `SHIORI3FW.Lint.Run` を使っていて、結果は同じ。ShioriLint を使う道具に渡すときの入口として知っておく。仕様は yaya-dic の `docs/manual_yaya_base.md`。
 - `lint: SKIPPED` のときは、yaya.dll かシステム辞書が古い。更新するかは作者に確かめる（`references/yaya/update.md`）。
 
 ## 600 系で増えた警告

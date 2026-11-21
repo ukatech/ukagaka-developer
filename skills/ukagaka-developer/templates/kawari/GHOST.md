@@ -26,7 +26,7 @@
 
 ## 辞書の構成
 
-- `kawarirc.kis` が読み込む辞書（`load` の順）:
+- `kawarirc.kis` が読み込む辞書（`load` の順。Phase 7 のゴーストは `kawari.ini` の `dict` の順）:
 - 暗号化した辞書（`.kaw` など）と、その元の辞書のありか（暗号化した辞書は直接編集しない）:
 - SAORI の登録（`saoriregist` の別名、パス、`preload` かどうか）:
 - 保存（`save` / `savecrypt` / `textsave` で書くファイル、どのイベントで書いて、どこで `load` するか）:
@@ -34,7 +34,7 @@
 
 ## イベントと辞書ファイルの対応
 
-- **振り分け**（`System.Callback.OnGET` の定義があるファイルと行、イベントのエントリ名の付け方）: （例: `kawarirc.kis` 5 行目。`On` で始まる ID は `event.<ID>`、それ以外は `resource.<ID>`）
+- **振り分け**（`System.Callback.OnGET` の定義があるファイルと行、イベントのエントリ名の付け方）: （例: `kawarirc.kis` 5 行目。`On` で始まる ID は `event.<ID>`、それ以外は `resource.<ID>`。Phase 7 のゴーストは `System.Callback.OnGET` が無く、大文字を含む ID が `event.<ID>`、全部小文字の ID が `resource.<ID>`）
 - NOTIFY（`System.Callback.OnNOTIFY`）:
 
 | ファイル（`ghost/master/`） | 主な中身 |

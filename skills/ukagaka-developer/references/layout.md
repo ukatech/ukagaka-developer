@@ -62,8 +62,8 @@
 | `ghost/master/kawarirc.kis` | **最初に読まれる辞書**。`=kis` 〜 `=end` の中に、ほかの辞書の `load`、SAORI の `saoriregist`、初期値などを書く。中身は普通の辞書 |
 | `ghost/master/*.txt` など | **ゴーストの辞書本体。主に編集するのはここ**。`kawarirc.kis` が `load` で読むファイルだけが辞書になる（名前と拡張子は自由。`dict-*.txt`、`ghost-*.txt` などが多い）。ミドルウェア（OpenKEEPS など）の辞書が入っていることもある（`GHOST.md`） |
 | `ghost/master/*.kaw` など | 暗号化した辞書（`kawari_encode2` で作る）。**直接編集しない**。元の辞書を直して暗号化し直す |
-| `ghost/master/shiori.dll` | SHIORI 本体（華和梨。スキルの対象は Phase 9）。`scripts/update-shiori.ps1` 以外で差し替えない。`shiori.dll` は SHIORI に共通の名前なので、スキルは `kawarirc.kis` があるものを華和梨とみなす |
-| `ghost/master/kawari.ini` | Phase 7 以前の設定ファイル。Phase 8 以降は読まれない（`load kawari.ini;` で辞書として読ませているゴーストはある）。`kawarirc.kis` が無く `kawari.ini` だけなら Phase 7 以前で、スキルの対象外 |
+| `ghost/master/shiori.dll` | SHIORI 本体（華和梨。スキルの対象は Phase 9）。`scripts/update-shiori.ps1` 以外で差し替えない。`shiori.dll` は SHIORI に共通の名前なので、スキルは `kawarirc.kis` か `kawari.ini` があるものを華和梨とみなす |
+| `ghost/master/kawari.ini` | Phase 7 の初期化ファイル（`dict : ファイル名` の行が辞書の一覧と読み込み順）。`kawarirc.kis` があるゴーストでは読まれない（`load kawari.ini;` で辞書として読ませているゴーストはある）。**`kawarirc.kis` が無く `kawari.ini` があるゴーストは Phase 7 で、`shiori.dll` が 9.3.1 以降なら 7 互換モードで動く**（`references/kawari/dictionary.md` の「Phase 7 のゴースト」）。この場合、辞書は `kawari.ini` の `dict` が読むファイル |
 | `ghost/master/saori/` など | SAORI の DLL（`saoriregist` で登録する。場所はゴーストしだい） |
 
 実行時に作られるもの（編集もコミットもしない）: 辞書が `save` / `savecrypt` / `textsave` で書くファイル（名前は辞書しだい。`GHOST.md` に書いておく）、`logfile` のログ、`ghost/master/profile/`、`shell/master/profile/`。

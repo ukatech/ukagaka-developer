@@ -5,6 +5,11 @@
     tamacs.exe loads the dictionaries, sends the request, prints the response and unloads KAWARI
     (tamacs -r --no-loghandler). SSP does not need to be running, and nothing appears on the desktop.
 
+    A ghost of Phase 7 (kawari.ini, no kawarirc.kis) runs on shiori.dll of 9.3.1 or later in its 7 compatible mode. The
+    request is the same; the hooks go into two dictionaries of their own, read through dict lines that are added to the
+    kawari.ini of the copy (an event entry for -Eval, whose ID has a capital letter: devkit.Eval), and the ghost's
+    events are the Phase 7 ones (event.<ID>; GHOST.md). -Eval evaluates a word of Phase 7 there.
+
     Every call runs in a temporary copy of ghost/master that is deleted afterwards, so the real folder is not
     touched (KAWARI and the dictionaries write save files and logs into it). The copy has the save files that the
     real folder holds. Each call loads the ghost from scratch: no OnBoot or other event is sent before the request.
@@ -82,11 +87,16 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib.ps1')
 Initialize-DevkitConsole
 
-$ghost = Resolve-DevkitShioriGhostDir 'shiori' $GhostDir @('shiori.dll', 'kawarirc.kis')
+$ghost = Resolve-DevkitShioriGhostDir -Label 'shiori' -GhostDir $GhostDir -Required @('shiori.dll') -AnyOf @('kawarirc.kis', 'kawari.ini')
 if (-not $ghost.Ok) { exit $ghost.Code }
 $GhostDir = $ghost.GhostDir
 $dll = Join-Path $GhostDir 'shiori.dll'
 $version = Get-DevkitKawariVersion $dll
+$sevenMode = ((Get-DevkitKawariMode $GhostDir) -eq 'kawari7')
+if ($sevenMode -and -not $version.Compat7) {
+    Write-Host "shiori: SKIPPED - this is a Phase 7 ghost (kawari.ini) and shiori.dll is $($version.Text); a Phase 7 ghost runs on shiori.dll of Phase 9.3.1 or later. Update it after the author agrees: references/kawari/update.md"
+    exit 3
+}
 if (-not $version.Phase9) {
     Write-Host "shiori: SKIPPED - shiori.dll is $($version.Text); the skill supports KAWARI Phase 9 (Phase 8 dictionaries run on it unchanged). Update it after the author agrees: references/kawari/update.md"
     exit 3
@@ -102,7 +112,7 @@ switch ($mode) {
             Write-Host 'shiori: -Eval is empty'
             exit 1
         }
-        $requestText = New-DevkitShioriRequest -Id $DevkitKawariEvalId -Reference $text
+        $requestText = New-DevkitShioriRequest -Id (Get-DevkitKawariEvalId $GhostDir) -Reference $text
         if ($null -eq $requestText) { exit 1 }
     }
     'Event' {

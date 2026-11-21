@@ -51,7 +51,7 @@ tests/check-repo.ps1                            リポジトリの検査（CI �
 
 YAYA、里々、華和梨の 3 つに対応している。足すときは、次の形をそろえる（`tests/check-repo.ps1` が一部を確かめる）。
 
-1. `scripts/lib/common.ps1` の `$DevkitShioriTable` に `Id`、`Dll`、`Name`、`Marker` を足す（`Marker` は、華和梨の `shiori.dll` のように、ほかの SHIORI と同じ dll の名前を使うときに、横にあるはずのファイル。`kawarirc.kis`）。`$DevkitShioriSupported` の文も直す。
+1. `scripts/lib/common.ps1` の `$DevkitShioriTable` に `Id`、`Dll`、`Name`、`Marker` を足す（`Marker` は、華和梨の `shiori.dll` のように、ほかの SHIORI と同じ dll の名前を使うときに、横にあるはずのファイル（配列で、どれか 1 つがあればよい。`kawarirc.kis` と、Phase 7 の `kawari.ini`）。`$DevkitShioriSupported` の文も直す。
 2. `scripts/shiori/<id>/` に、`lib.ps1`（`Invoke-DevkitTamacs`、`Add-DevkitShioriDoctorItems`、`Invoke-DevkitShioriSetup`、`Get-DevkitShioriNarProblem`、`$DevkitTamacsPurpose`。`check.ps1` に `-Run` を渡したいときは `$DevkitCheckDicRunArgument` も）、`check-dic.ps1`、`shiori.ps1`、`update.ps1`（あれば `lint.ps1`）。
    - 各スクリプトの始まり（`GhostDir` の解決、dll の確認、tamacs.exe / kosui.exe の確認）は `scripts/lib/shiori-common.ps1` の `Resolve-DevkitShioriGhostDir` と `Get-DevkitShioriTool`、SHIORI リクエストの組み立ては `New-DevkitShioriRequest` を使う。`update.ps1` の作業フォルダ、ダウンロードと SHA256 の確認、zip の展開、置換と巻き戻しは `scripts/lib/update-common.ps1`（`New-DevkitWorkDir`、`Save-DevkitReleaseAsset`、`Expand-DevkitZipFile`、`Install-DevkitFiles`、`Invoke-DevkitDictionaryCheck`）を使う。SHIORI ごとに違うのは、`-Eval` の意味、読み込みに使う道具、版の体系、ログのパターンだけにする。
 3. `templates/<id>/`（`GHOST.md`、`narignore`、`gitattributes`、`editorconfig`）。`scripts/lib/ghost-files.ps1` の `Get-DevkitStarterFiles` が使う。`GHOST.md` の見出しは、ほかの SHIORI のものと同じにする（`tests/check-repo.ps1` が確かめる）。
@@ -94,13 +94,14 @@ YAYA、里々、華和梨の 3 つに対応している。足すときは、次�
 | `satori-check.md` | 里々の `check-dic` と `shiori` の実装（一時コピー、ShioriEcho、ログの読み方） |
 | `kawari.md` | 華和梨の実装（kosui `--check` と tamacs.exe `--no-loghandler` の使い分け、一時コピーに足すログとフック、`shiori.dll` の版、文字コード、`update.ps1`） |
 | `ignore.md` | `.narignore` / `.updateignore` の解釈（`scripts/lib/ignore.ps1`） |
+| `pages.md` | `scripts/build-site.ps1` と `templates/github/auto_deploy.yml`（Pages 配布、旧 homeurl の凍結版） |
 
 ## 確認
 
 スキルを変えたら、次を確かめる。
 
 1. `powershell -NoProfile -ExecutionPolicy Bypass -File tests/check-repo.ps1`: 構文（5.1 でも）、ASCII、`SKILL.md` と文書が指すパスの実在、`allowed-tools` のパス、SHIORI の部品の形。
-2. YAYA のゴースト（konnoyayame）と、里々のゴースト（POST_and_KOMAINU）と、華和梨のゴースト（Shift_JIS の辞書のもの、Phase 8 の `shiori.dll` のものも）の**コピー**で、`scripts/doctor.ps1`、`scripts/check.ps1`、`scripts/shiori.ps1 -Eval`、`scripts/update-shiori.ps1 -DryRun`、`scripts/build-nar.ps1 -ListOnly` が動く。Windows PowerShell 5.1 と `pwsh` の両方で。環境変数 `UKADEV_HOME` を一時フォルダにして、利用者のホームフォルダを汚さない。
+2. YAYA のゴースト（konnoyayame）と、里々のゴースト（POST_and_KOMAINU）と、華和梨のゴースト（Shift_JIS の辞書のもの、Phase 8 の `shiori.dll` のもの、`kawari.ini` の Phase 7 のものも）の**コピー**で、`scripts/doctor.ps1`、`scripts/check.ps1`、`scripts/shiori.ps1 -Eval`、`scripts/update-shiori.ps1 -DryRun`、`scripts/build-nar.ps1 -ListOnly` が動く。Windows PowerShell 5.1 と `pwsh` の両方で。環境変数 `UKADEV_HOME` を一時フォルダにして、利用者のホームフォルダを汚さない。
 3. 移行のシナリオ（コピーの上で）:
    - 旧キットの入ったゴーストに `migrate-from-devkit.ps1`（ドライラン）→ `-Apply`。旧キットのファイルが消え、`AGENTS.md` / `CLAUDE.md` がスタブになり、`.narignore` が書き換わり、`doctor.ps1` の `old development kit` が ok になる。
    - `AGENTS.md` を手で変えたもの、`tools/` に作者のスクリプトがあるもの、`.claude/settings.json` に作者の許可があるもの、`tools/local.json` があるものでは、変えたファイルが残り、`settings.json` は編集に留まり、SSP の場所が `local.json` に移る。

@@ -115,14 +115,15 @@ function Initialize-DevkitConsole {
 # --- SHIORI (YAYA, SATORI, KAWARI) --------------------------------------------------------
 
 # Names of the SHIORI that the skill supports: folder under scripts/shiori/ -> dll name and display name.
-# Marker: a file that must sit next to the dll, for a dll name that other SHIORI use too (shiori.dll of KAWARI).
+# Marker: files of which one must sit next to the dll, for a dll name that other SHIORI use too (shiori.dll of KAWARI:
+# kawarirc.kis of Phase 8 and later, or kawari.ini of Phase 7, which shiori.dll of Phase 9.3 runs in its 7 compatible mode).
 $DevkitShioriTable = @(
-    [pscustomobject]@{ Id = 'yaya'; Dll = 'yaya.dll'; Name = 'YAYA'; Marker = $null },
-    [pscustomobject]@{ Id = 'satori'; Dll = 'satori.dll'; Name = 'SATORI'; Marker = $null },
-    [pscustomobject]@{ Id = 'kawari'; Dll = 'shiori.dll'; Name = 'KAWARI'; Marker = 'kawarirc.kis' }
+    [pscustomobject]@{ Id = 'yaya'; Dll = 'yaya.dll'; Name = 'YAYA'; Marker = @() },
+    [pscustomobject]@{ Id = 'satori'; Dll = 'satori.dll'; Name = 'SATORI'; Marker = @() },
+    [pscustomobject]@{ Id = 'kawari'; Dll = 'shiori.dll'; Name = 'KAWARI'; Marker = @('kawarirc.kis', 'kawari.ini') }
 )
 # What the messages say when a ghost has none of them.
-$DevkitShioriSupported = 'YAYA (yaya.dll), SATORI (satori.dll) and KAWARI Phase 9 (shiori.dll with kawarirc.kis)'
+$DevkitShioriSupported = 'YAYA (yaya.dll), SATORI (satori.dll) and KAWARI (shiori.dll with kawarirc.kis, or with kawari.ini for a Phase 7 ghost)'
 
 # Returns the id of the SHIORI of a ghost ('yaya', 'satori' or 'kawari'), or $null when it is none of them. It follows
 # the shiori key of descript.txt, then the dll (and its marker file) that exists in ghost/master.
@@ -136,20 +137,14 @@ function Get-DevkitShiori([string]$GhostDir) {
     }
     foreach ($entry in $DevkitShioriTable) {
         if (-not (Test-Path -LiteralPath (Join-Path $GhostDir $entry.Dll) -PathType Leaf)) { continue }
-        if ($entry.Marker -and -not (Test-Path -LiteralPath (Join-Path $GhostDir $entry.Marker) -PathType Leaf)) { continue }
+        if (@($entry.Marker).Count -gt 0) {
+            $hasMarker = $false
+            foreach ($marker in @($entry.Marker)) {
+                if (Test-Path -LiteralPath (Join-Path $GhostDir $marker) -PathType Leaf) { $hasMarker = $true; break }
+            }
+            if (-not $hasMarker) { continue }
+        }
         return $entry.Id
-    }
-    return $null
-}
-
-# Tells why a ghost has no supported SHIORI, when that can be told: KAWARI Phase 7 or older (kawari.ini without
-# kawarirc.kis), which Phase 9 does not read. Returns $null otherwise.
-function Get-DevkitUnsupportedShioriReason([string]$GhostDir) {
-    if (-not $GhostDir) { $GhostDir = Join-Path $DevkitRoot 'ghost/master' }
-    if ((Test-Path -LiteralPath (Join-Path $GhostDir 'shiori.dll') -PathType Leaf) -and
-        (Test-Path -LiteralPath (Join-Path $GhostDir 'kawari.ini') -PathType Leaf) -and
-        -not (Test-Path -LiteralPath (Join-Path $GhostDir 'kawarirc.kis') -PathType Leaf)) {
-        return 'this looks like KAWARI Phase 7 or older (kawari.ini without kawarirc.kis), which is not supported: moving it to Phase 8/9 means rewriting the dictionaries (https://ukatech.shillest.net/kawari-docs/migration/)'
     }
     return $null
 }
@@ -174,12 +169,7 @@ function Get-DevkitShioriDir([string]$Id) {
 function Resolve-DevkitShioriScript([string]$Name, [string]$Label = $Name) {
     $id = Get-DevkitShiori
     if (-not $id) {
-        $reason = Get-DevkitUnsupportedShioriReason
-        if ($reason) {
-            Write-Host "${Label}: FAILED - $reason"
-        } else {
-            Write-Host "${Label}: FAILED - this ghost has no SHIORI that the skill supports in ghost/master (and descript.txt has no shiori key for them). Supported: $DevkitShioriSupported."
-        }
+        Write-Host "${Label}: FAILED - this ghost has no SHIORI that the skill supports in ghost/master (and descript.txt has no shiori key for them). Supported: $DevkitShioriSupported."
         return [pscustomobject]@{ Path = $null; Code = 1 }
     }
     $script = Join-Path (Get-DevkitShioriDir $id) "$Name.ps1"
