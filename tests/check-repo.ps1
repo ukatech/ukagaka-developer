@@ -142,9 +142,10 @@ foreach ($doc in $docs) {
     if ($text -match 'ukatech\.github\.io/satori-docs' -and -not $text.Contains($redirectWord)) {
         Fail "$(Relative $doc.FullName): uses the old satori-docs address (ukatech.github.io); it moved to ukatech.shillest.net"
     }
-    # UKADOC moved too; the old pages are redirected to a path that returns 404 (docs/maintaining/MAINTAINING.md).
-    if ($text -match 'ssp\.shillest\.net/ukadoc/manual') {
-        Fail "$(Relative $doc.FullName): uses the old UKADOC address (ssp.shillest.net/ukadoc/manual); use https://ukatech.shillest.net/ukadoc-spec/<name>.html"
+    # UKADOC moved too (split into ukadoc-spec and ukadoc-ssp); the old pages return 404 (docs/maintaining/MAINTAINING.md).
+    # ssp.shillest.net/ukadoc/mcp is the MCP endpoint, which still works.
+    if ($text -match 'ssp\.shillest\.net/ukadoc/(?!mcp\b)') {
+        Fail "$(Relative $doc.FullName): uses the old UKADOC address (ssp.shillest.net/ukadoc/); use https://ukatech.shillest.net/ukadoc-spec/<name>.html or https://ukatech.shillest.net/ukadoc-ssp/<name>.html"
     }
 }
 

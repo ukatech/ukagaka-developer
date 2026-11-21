@@ -63,7 +63,7 @@ YAYA、里々、華和梨の 3 つに対応している。足すときは、次�
 - `SKILL.md` は 500 行以下にし、詳しいことは `references/` に置く。`references/` から別の資料を指すときは、スキルのフォルダからの相対パス（`references/yaya/check.md`）で書く。
 - `references/workflows/` に手順書を足したら、`SKILL.md` の「こう頼まれたら」の表にも行を足す。作者の言い回しは、その文書の「使うとき」とそろえる。想定している作者は、コーディングエージェントに不慣れで、自然な言葉で頼む。スラッシュコマンドは前提にしない。
 - 特定のゴースト（konnoyayame の「ややめ」、POST_and_KOMAINU の「ポスト」など）に固有のことを書かない。固有のことは、そのゴーストの `GHOST.md` に書く。
-- 公式情報は変わる。例: 里々の仕様書は `ukatech.github.io/satori-docs/` から `ukatech.shillest.net/satori-docs/` に移った。UKADOC は `ssp.shillest.net/ukadoc/manual/` から `ukatech.shillest.net/ukadoc-spec/` に移った（古い URL は、移動先で 404 になる整形後のパスへ 301 で飛ばされるので読めない。2026 年 11 月に確認した。読める形は `ukatech.shillest.net/ukadoc-spec/<名前>.html`）。URL は `SKILL.md`、`agents/ukagaka-researcher.md`、`references/` にあるので、変わったら `tests/check-repo.ps1` の URL の検査と合わせて直す。外部 URL をまとめて確かめるときは、文書から URL を拾って `curl -sL -o /dev/null -w '%{http_code}'` で見る（`-L` を付けて、移動先まで確かめる。301 のまま 200 と思い込まない）。
+- 公式情報は変わる。例: 里々の仕様書は `ukatech.github.io/satori-docs/` から `ukatech.shillest.net/satori-docs/` に移った。UKADOC は `ssp.shillest.net/ukadoc/` 以下から、`ukatech.shillest.net/ukadoc-spec/`（仕様）と `ukatech.shillest.net/ukadoc-ssp/`（SSP の資料）に再編された（古い URL は、移動先で 404 になる整形後のパスへ 301 で飛ばされるので読めない。2026 年 11 月に確認した。読める形は `ukatech.shillest.net/ukadoc-spec/<名前>.html`）。MCP のエンドポイント `ssp.shillest.net/ukadoc/mcp` だけは、いまも使える（2026 年 11 月に確認）ので、そのままにしている。URL は `SKILL.md`、`agents/ukagaka-researcher.md`、`references/` にあるので、変わったら `tests/check-repo.ps1` の URL の検査と合わせて直す。外部 URL をまとめて確かめるときは、文書から URL を拾って `curl -sL -o /dev/null -w '%{http_code}'` で見る（`-L` を付けて、移動先まで確かめる。301 のまま 200 と思い込まない）。
 
 ## 旧 AI 開発キットとの互換
 
