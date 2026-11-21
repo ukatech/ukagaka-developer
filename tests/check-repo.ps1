@@ -142,6 +142,10 @@ foreach ($doc in $docs) {
     if ($text -match 'ukatech\.github\.io/satori-docs' -and -not $text.Contains($redirectWord)) {
         Fail "$(Relative $doc.FullName): uses the old satori-docs address (ukatech.github.io); it moved to ukatech.shillest.net"
     }
+    # UKADOC moved too; the old pages are redirected to a path that returns 404 (docs/maintaining/MAINTAINING.md).
+    if ($text -match 'ssp\.shillest\.net/ukadoc/manual') {
+        Fail "$(Relative $doc.FullName): uses the old UKADOC address (ssp.shillest.net/ukadoc/manual); use https://ukatech.shillest.net/ukadoc-spec/<name>.html"
+    }
 }
 
 Write-Host ''

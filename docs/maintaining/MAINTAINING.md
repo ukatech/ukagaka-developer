@@ -63,12 +63,12 @@ YAYA、里々、華和梨の 3 つに対応している。足すときは、次�
 - `SKILL.md` は 500 行以下にし、詳しいことは `references/` に置く。`references/` から別の資料を指すときは、スキルのフォルダからの相対パス（`references/yaya/check.md`）で書く。
 - `references/workflows/` に手順書を足したら、`SKILL.md` の「こう頼まれたら」の表にも行を足す。作者の言い回しは、その文書の「使うとき」とそろえる。想定している作者は、コーディングエージェントに不慣れで、自然な言葉で頼む。スラッシュコマンドは前提にしない。
 - 特定のゴースト（konnoyayame の「ややめ」、POST_and_KOMAINU の「ポスト」など）に固有のことを書かない。固有のことは、そのゴーストの `GHOST.md` に書く。
-- 公式情報は変わる。例: 里々の仕様書は `ukatech.github.io/satori-docs/` から `ukatech.shillest.net/satori-docs/` に移った。URL は `SKILL.md`、`agents/ukagaka-researcher.md`、`references/satori/` にあるので、変わったら `tests/check-repo.ps1` の URL 一覧（`$ExpectedUrls`）と合わせて直す。
+- 公式情報は変わる。例: 里々の仕様書は `ukatech.github.io/satori-docs/` から `ukatech.shillest.net/satori-docs/` に移った。UKADOC は `ssp.shillest.net/ukadoc/manual/` から `ukatech.shillest.net/ukadoc-spec/` に移った（古い URL は、移動先で 404 になる整形後のパスへ 301 で飛ばされるので読めない。2026 年 11 月に確認した。読める形は `ukatech.shillest.net/ukadoc-spec/<名前>.html`）。URL は `SKILL.md`、`agents/ukagaka-researcher.md`、`references/` にあるので、変わったら `tests/check-repo.ps1` の URL の検査と合わせて直す。外部 URL をまとめて確かめるときは、文書から URL を拾って `curl -sL -o /dev/null -w '%{http_code}'` で見る（`-L` を付けて、移動先まで確かめる。301 のまま 200 と思い込まない）。
 
 ## 旧 AI 開発キットとの互換
 
 - `scripts/lib/legacy-devkit.ps1` と `scripts/migrate-from-devkit.ps1` は、旧キットの `tools/devkit.json`（`files`、`exclude`、`seed`）と `tools/devkit.lock.json`（ファイルごとの、LF にそろえた SHA256）の形式を読む。**旧キットのゴーストが残っている間は、この形式の読み取りを変えない。** ハッシュの計算（`Get-DevkitFileHash`）を変えると、変えていないファイルまで「変更あり」に見える。
-- 旧キットの配布元（konnoyayame と POST_and_KOMAINU のリポジトリ）が、キットをスキルに切り替えるまで、既存のゴーストの `tools/update-devkit.ps1` は、旧キットを取り続ける。切り替えたリポジトリの `DEVKIT-MAINTAINING.md` は、`migrate-from-devkit.ps1` が「キットの配布元」と判定して止まる目印でもある。
+- 旧キットの配布元だった konnoyayame（YAYA-shiori）と POST_and_KOMAINU_V2（ukatech）は、2026 年 11 月に確かめた時点で、すでにスキルへ切り替わっていて、`tools/` も `DEVKIT-MAINTAINING.md` も無い。ただ、そこから作られた古いゴーストの `tools/update-devkit.ps1` は、旧キットを取ろうとする。`DEVKIT-MAINTAINING.md` は、`migrate-from-devkit.ps1` が「キットの配布元」と判定して止まる目印（ほかに旧キットを配るリポジトリがあるときのため）。
 - 移行を直したときは、必ず**コピー**の上で試す（下の「確認」）。
 
 ## 更新（プラグイン）

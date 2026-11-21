@@ -108,7 +108,7 @@ yaya.dll（YAYA 本体）とシステム辞書（[yaya-dic](https://github.com/Y
 2. 作者の設定を引き継ぐ。`yaya_base/config.dic` の値と、`_loading_order.txt` で読む辞書（`optional.dic`、`compatible.dic`、`aya_lilith`）を、調べた結果に合わせる。書き方は、yaya-dic の `README.md` と各フォルダの `_loading_order.txt` を読んで合わせる。submodule の中のファイルを変えると、更新のたびに退避と復元が要るようになることも伝える。
 3. 読み込みの行を書き換える。`yaya.txt`、そこから `include` しているファイル、`yaya_emerg.txt` にある古いシステム辞書の行を消し、ほかの辞書より前に `dicdir, dic/system` の 1 行を置く（テンプレートでは `system_config.txt` に書き、`yaya.txt` と `yaya_emerg.txt` の最初で `include` している）。緊急モードでもシステム辞書が読まれるようにする。
 4. 古いシステム辞書のファイルを消す（git で管理していれば `git rm`）。
-5. ネットワーク更新で配布しているゴーストでは、利用者の環境に古いファイルが残る。消したファイルを `delete.txt` に書くことを提案する（書式は https://ssp.shillest.net/ukadoc/manual/descript_install.html ）。
+5. ネットワーク更新で配布しているゴーストでは、利用者の環境に古いファイルが残る。消したファイルを `delete.txt` に書くことを提案する（書式は https://ukatech.shillest.net/ukadoc-spec/descript_install.html ）。
 6. `GHOST.md` の辞書の構成の説明を、新しい置き場所に合わせて直す。
 
 ### 3. 確かめる

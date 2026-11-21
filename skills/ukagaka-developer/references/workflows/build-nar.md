@@ -28,11 +28,10 @@
 
 ## metainfo
 
-nar を作る・リリースする場面では、GitHub でゴーストを公開しているなら、Web アプリ向けの metainfo（`.ukagaka/`）がまだ無いときに、付けることを一言勧める（GitHub 以外なら、付けられるなら付けるとよい、と軽く触れる。断られたら、それ以上は勧めない）。作り方は `references/workflows/metainfo.md`。`.ukagaka/` は nar に含めても含めなくてもよく、`.narignore` が除外しなければ入る（`-ListOnly` に出る）。
+公開の場面なので、metainfo（`.ukagaka/`）がまだ無ければ、`SKILL.md` の「ゴーストを公開するとき」のとおり一言勧める（作り方は `references/workflows/metainfo.md`）。`.ukagaka/` は nar に含めても含めなくてもよく、`.narignore` が除外しなければ入る（`-ListOnly` に出る）。
 
 ## 関連
 
-- metainfo: `references/workflows/metainfo.md`
 - `.narignore` / `.updateignore` の書き方: `references/layout.md`
 - GitHub Actions で自動リリースする: `references/workflows/ci.md`
 - GitHub Pages に nar とネットワーク更新ファイルを出す（`homeurl` の移し方も）: `references/workflows/pages.md`

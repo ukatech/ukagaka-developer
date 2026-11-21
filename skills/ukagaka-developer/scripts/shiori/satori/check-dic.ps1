@@ -8,7 +8,7 @@
     The check runs in a temporary copy of ghost/master, so the real folder is not touched (SATORI would write
     satori_savedata.txt and satori_savebackup.txt into it when it unloads).
 
-    What is read from the SATORI log (the patterns are in scripts/shiori/satori/satori.json; see references/workflows/check.md):
+    What is read from the SATORI log (the patterns are in scripts/shiori/satori/satori.json; see references/satori/check.md):
       - a dictionary with an unclosed full-width bracket (the "brackets do not match" message, which SATORI
         reports as [ERROR])
       - a wrong line in the SAORI list of satori_conf.txt, or a SAORI dll that does not load

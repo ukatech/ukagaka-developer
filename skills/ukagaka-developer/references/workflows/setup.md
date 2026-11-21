@@ -24,7 +24,7 @@
 5. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1` で、辞書とシェルと lint のチェックが通ることを確かめる。
 6. doctor の `ghost-profile` が ok でなければ（`GHOST.md` が無い、または先頭に `<!-- devkit:ghost-template -->` が残っている）、`GHOST.md` を下書きする。
    - 無ければ手順 4 の `init-ghost.ps1` が、SHIORI に合った空の書式（`templates/<yaya|satori|kawari>/GHOST.md`）を作る。
-   - YAYA: `ghost/master/descript.txt`、`ghost/master/yaya.txt`、辞書（`dic/` 以下のファイル名と、どのイベントがどこにあるか）。里々: `ghost/master/descript.txt`、`ghost/master/satori_conf.txt`（`＊初期化` の初期値と、`＠SAORI` に登録した SAORI）、辞書（`ghost/master/dic*.txt` のファイル名と、どのイベント（`＊OnBoot` など）がどこにあるか。名前のない `＊` はランダムトーク）。華和梨: `ghost/master/descript.txt`、`ghost/master/kawarirc.kis`（`load` する辞書の並び、`saoriregist`、保存に使う `save` のファイル）、`System.Callback.OnGET` の振り分け（イベントのエントリ名の付け方）、辞書の文字コード（`scripts/doctor.ps1` の `UTF-8 dictionaries`）。
+   - YAYA: `ghost/master/descript.txt`、`ghost/master/yaya.txt`、辞書（`dic/` 以下のファイル名と、どのイベントがどこにあるか）。里々: `ghost/master/descript.txt`、`ghost/master/satori_conf.txt`（`＊初期化` の初期値と、`＠SAORI` に登録した SAORI）、辞書（`ghost/master/dic*.txt` のファイル名と、どのイベント（`＊OnBoot` など）がどこにあるか。名前のない `＊` はランダムトーク）。華和梨（Phase 7 のゴーストは `kawarirc.kis` の代わりに `kawari.ini` の `dict` の並びと `locale`。`references/kawari/dictionary.md` の「Phase 7 のゴースト」）: `ghost/master/descript.txt`、`ghost/master/kawarirc.kis`（`load` する辞書の並び、`saoriregist`、保存に使う `save` のファイル）、`System.Callback.OnGET` の振り分け（イベントのエントリ名の付け方）、辞書の文字コード（`scripts/doctor.ps1` の `UTF-8 dictionaries`）。
    - どれも、`shell/master/surfaces.txt` と `surfacetable.txt`、`shell/master/descript.txt`（シェルの作者とライセンス）、既存のトークを読んで埋める。
    - 「使えるサーフェス」の表情の説明は、`surfacetable.txt` や既存のトークで使われている場面に加えて、画像を読めるなら実際の見た目で確かめる: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dump-surface.ps1 -Surface 0-9 -Backlog -Sheet`（`sheet.png` に顔のまわりが番号付きで並ぶ。番号は surfaces.txt に合わせる。`\1` 側は `-Scope 1` を付ける）。当たり判定の名前と位置は、`-Surface 0 -Collision` で見られる。
    - 人物像やトークの決まりは、既存の台詞から読み取れる範囲にとどめ、推測で足さない。わからない欄は空けたまま、作者に聞く。
@@ -32,7 +32,7 @@
 7. 作者が望めば `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-ssp.ps1` でゴーストを起動して見せる（デスクトップにゴーストが現れる。試験用の SSP が別に立つので、見せ終わったら `scripts/run-ssp.ps1 -Stop` で閉じてよいか聞く）。
 8. 最後に次のことを伝える。
    - Claude Code では、プラグインを入れた直後のセッションには読み込まれていないことがある。仕様検索 MCP（ukagaka-doc）は、初回に承認を求められる。ほかのエージェントで仕様検索 MCP を使うときは、`SKILL.md` の「仕様を調べる」に沿って、そのツールの設定に登録する。
-   - GitHub でゴーストを公開している（または公開する予定）なら、Web アプリ向けの metainfo（`.ukagaka/`）を付けることを一言勧める（`references/workflows/metainfo.md`。断られたら、それ以上は勧めない）。
+   - GitHub でゴーストを公開している（または公開する予定）なら、metainfo（`.ukagaka/`）を付けることを一言勧める（`SKILL.md` の「ゴーストを公開するとき」）。
    - 次にできること。作者はコマンド名を知らないので、**「〜と頼んでください」の形で 2〜3 個示す**。例:「トークを書いて」「SSP で動かして見せて」「自分のゴーストにしたい」。
 
 ## 関連

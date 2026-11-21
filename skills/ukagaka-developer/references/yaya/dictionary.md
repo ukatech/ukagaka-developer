@@ -6,8 +6,7 @@ YAYA のゴーストの辞書（`ghost/master/dic/` の `.dic`）を書くとき
 
 このスキルは、YAYA 6（600 系。`yaya.dll` が `Tc6xx`）のゴーストを前提に書いている。系列は `scripts/doctor.ps1` の `yaya.dll 6, 07, …` の先頭の数で分かる（5 なら 500 系）。
 
-- **サポート対象は 600 系だけ。** 更新されているのは Tc6xx だけで、500 系（Tc5xx）は致命的な問題のバックポートが検討される程度。
-- **500 系のゴーストでは、作者に YAYA 6 への更新を強く推奨する**（頼まれるまで自分では更新しない。手順は `references/yaya/update.md`）。`yaya.dll` を置き換えるだけ（drop-in）で辞書とセーブファイルがほぼそのまま動き、互換性の報告も些細なものしかない。変更点は yaya-docs の `other/changes-600.md`。
+- **サポート対象は 600 系だけ。** 更新されているのは Tc6xx だけで、500 系（Tc5xx）は致命的な問題のバックポートが検討される程度。**500 系のゴーストでは、作者に YAYA 6 への更新を強く推奨する**（頼まれるまで自分では更新しない。伝えることと手順は `references/yaya/update.md`。変更点は yaya-docs の `other/changes-600.md`）。
 - 作者が見送ったら、そのゴーストでは 600 系の機能（ハッシュ、入れ子、多次元代入、2 変数の `foreach`、JSON / XML / YAML / TOML / HTML / SQLite の関数）を使わない（500 系ではエラーになる）。両方で動かす辞書は `#ifdef __AYA_SYSTEM_YAYA6__` で書き分ける（Tc574-2 以降の 500 系、Tc602-2 以降の 600 系）。
 - 600 系の中でも、機能ごとに入った版が違う。版が書いてある機能は、ゴーストの `yaya.dll` がその版以降か確かめてから使う。最近入った主なもの（引数と戻り値は、各関数のページ `https://yaya-shiori.github.io/yaya-docs/functions/<関数名>/` で確かめる）:
   - Tc607-3: `SERIALIZEVAR` / `DESERIALIZEVAR`（変数をセーブファイルの書式の文字列で受け渡す）

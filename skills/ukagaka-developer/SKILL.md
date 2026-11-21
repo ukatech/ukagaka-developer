@@ -85,9 +85,11 @@ templates/     ゴーストに足す入門用ファイル（GHOST.md など）�
 
 ## 作業のルール
 
-1. **辞書や `ghost/master/` の設定を変更したら、必ず `scripts/check-dic.ps1` を通す**（`scripts/check.ps1` は、シェルのチェックと `scripts/lint.ps1` も続けて行う。里々は Mc206-1 以降なら、`lint.ps1` が辞書を実行せずに書き方の誤りや飛び先・名前の書き間違いを全部探すので、`check-dic.ps1` が通った後に行う）。エラーが残ったゴーストは、YAYA では緊急モードで起動してほとんど話さなくなり、里々と華和梨では辞書が正しく読み込まれない。華和梨の `check-dic.ps1` と `lint.ps1` は、kosui.exe（`scripts/setup.ps1` が入れる）の安全モードで調べる（Phase 7 のゴーストの単語は静的に調べられないので、`shiori.ps1` で動かして確かめる）。`shell/` を変更したら `scripts/check-shell.ps1` も通す。
+1. **辞書や `ghost/master/` の設定を変更したら、必ず `scripts/check-dic.ps1` を通す。** エラーが残ったゴーストは、YAYA では緊急モードで起動してほとんど話さなくなり、里々と華和梨では辞書が正しく読み込まれない。`scripts/check.ps1` は、`check-dic`、シェルのチェック、`lint` を順に行う（`shell/` を変更したら `scripts/check-shell.ps1` も通す）。SHIORI ごとの違い:
+   - 里々の `lint.ps1`（satori.dll Mc206-1 以降）は、辞書を実行せずに、書き方の誤りと飛び先・名前の書き間違いを全部探す。`check-dic.ps1` が通った後に行う。
+   - 華和梨の `check-dic.ps1` と `lint.ps1` は、kosui.exe（`scripts/setup.ps1` が入れる）の安全モードで調べる。Phase 7 のゴーストの単語は静的に調べられないので、次の 2 で動かして確かめる。
 2. **辞書の関数やトークを書いたり直したりしたら、`scripts/shiori.ps1` で実際に呼び出して**、返すスクリプトと実行時のエラー（存在しない関数の呼び出しなど。読み込みのチェックでは見つからない）を確かめる。ファイルの書き込み、外部プログラムの実行、**SAORI の呼び出し**をする関数やトークは、本当に動く（SAORI の中には、画面を塗りつぶすものもある）。中身を読んで、作者に断ってから呼ぶ。
-3. **SSP で動かして確かめるときは、先に `scripts/run-ssp.ps1` で試験用の SSP（readonly）を立ててから** `scripts/sstp.ps1` で送る。立てていないと、作者がふだん使っている SSP（9801）に送ってしまう。`scripts/sstp.ps1` と `scripts/run-ssp.ps1` が表示する SSP のエラーログ（終了コード 2）も見る。再生したトークで解釈できなかったタグは `[GHOST/Script]` のエラーとして出るので、それも直す（`references/workflows/try-in-ssp.md`）。
+3. **SSP で動かして確かめるときは、先に `scripts/run-ssp.ps1` で試験用の SSP（readonly）を立ててから** `scripts/sstp.ps1` で送る。立てていないと、作者がふだん使っている SSP（9801）に送ってしまう。表示される SSP のエラーログ（終了コード 2）と、再生で解釈できなかったタグ（`[GHOST/Script]`）も直す（`references/workflows/try-in-ssp.md`）。
 4. 仕様（さくらスクリプトのタグ、SHIORI イベントの名前と Reference、YAYA の関数、里々の関数、`descript.txt` や `surfaces.txt` の項目）を**推測で書かない**。確かでないときは、下の「仕様を調べる」で確かめる。
 5. 文字コードは UTF-8（BOM なし）、改行は LF、辞書のインデントは YAYA がタブ、里々は行頭の指定の位置にタブ（`.editorconfig` と、SHIORI の `dictionary.md`）。元からある文書（`readme.txt` など）の文字コードは変えない。**Shift_JIS の辞書（古い華和梨のゴーストに多い）は、UTF-8 前提の道具で編集しない**（`references/kawari/dictionary.md` の「文字コード」）。
 6. **編集しないもの**: SHIORI 本体（`yaya.dll`、`satori.dll`、`satorite.exe`、華和梨の `shiori.dll`）、華和梨の暗号化した辞書（`.kaw` など。元の辞書を直して暗号化し直す）、YAYA のシステム辞書（`ghost/master/dic/system/` または `ghost/master/system/`。変更が必要なら上流の yaya-dic に提案する）、実行時に作られるファイル（`yaya_variable.cfg`、`satori_savedata.*`、`profile/` など）。SHIORI 本体とシステム辞書の更新は、`references/workflows/update-shiori.md` の手順で行う。
@@ -102,18 +104,21 @@ templates/     ゴーストに足す入門用ファイル（GHOST.md など）�
 
 1. **MCP サーバー `ukagaka-doc`**（UKADOC、SSP ヘルプ、YAYA docs、里々 docs、華和梨 docs などを検索できるオンラインのサーバー。URL は `https://ssp.shillest.net/ukadoc/mcp`）。Claude Code ではプラグインに入っている（初回に承認が要る）。ほかのエージェントでは、そのツールの MCP 設定に HTTP（Streamable HTTP）のサーバーとして登録する。
    - `search_docs` は、クエリ全体を 1 つの部分文字列として探す。**スペースを含まない単語 1 つ**を投げる（`OnSurfaceRestore`、`\q`、`選択肢`、`REPLACE` のように。さくらスクリプトは `\q` とバックスラッシュ付きで）。「文字列 置換」のような複数語や自然文は 0 件になる。
-   - 絞り込みは語を足さず、`source`（`ukadoc` / `ssp_help` / `yaya_docs` / `satori_docs` / `kawari_docs` など）と `category` で行う。0 件は「存在しない」ではなく「引き方が違う」ことが多い。短い語に分解し、日本語の説明語、英語のタグ名、上位概念の 3 方向から引く。
+   - 絞り込みは語を足さず、`source`（`ukadoc` / `ssp_help` / `yaya_docs` / `satori_docs` / `kawari_docs`。このスキルの対象外だが、`aosora_wiki`（蒼空）、`minato_docs`（湊）、`pasta_docs`（Pasta）もある）と `category` で行う。0 件は「存在しない」ではなく「引き方が違う」ことが多い。短い語に分解し、日本語の説明語、英語のタグ名、上位概念の 3 方向から引く。
    - 本文は `get_doc` で読む（`search_docs` の summary は冒頭だけ）。MCP の内容は定期的なスナップショットで、各ソースの最新の更新が反映されていないことがある。
 2. **一次資料を読む。**
-   - さくらスクリプト一覧: https://ssp.shillest.net/ukadoc/manual/list_sakura_script.html
-   - SHIORI イベント一覧: https://ssp.shillest.net/ukadoc/manual/list_shiori_event.html
-   - SHIORI リソース一覧: https://ssp.shillest.net/ukadoc/manual/list_shiori_resource.html
-   - ゴーストの descript.txt: https://ssp.shillest.net/ukadoc/manual/descript_ghost.html
-   - シェルの descript.txt: https://ssp.shillest.net/ukadoc/manual/descript_shell.html
-   - surfaces.txt: https://ssp.shillest.net/ukadoc/manual/descript_shell_surfaces.html
-   - SSTP: https://ssp.shillest.net/ukadoc/manual/spec_sstp.html
-   - install.txt / .narignore / .updateignore / delete.txt: https://ssp.shillest.net/ukadoc/manual/descript_install.html
-   - ネットワーク更新: https://ssp.shillest.net/ukadoc/manual/dev_update.html
+   - さくらスクリプト一覧: https://ukatech.shillest.net/ukadoc-spec/list_sakura_script.html
+   - SHIORI イベント一覧: https://ukatech.shillest.net/ukadoc-spec/list_shiori_event.html
+   - SHIORI リソース一覧: https://ukatech.shillest.net/ukadoc-spec/list_shiori_resource.html
+   - ゴーストの descript.txt: https://ukatech.shillest.net/ukadoc-spec/descript_ghost.html
+   - シェルの descript.txt: https://ukatech.shillest.net/ukadoc-spec/descript_shell.html
+   - surfaces.txt: https://ukatech.shillest.net/ukadoc-spec/descript_shell_surfaces.html
+   - バルーンの descript.txt: https://ukatech.shillest.net/ukadoc-spec/descript_balloon.html
+   - プロパティシステム（`%property[...]`、`uuid` など）: https://ukatech.shillest.net/ukadoc-spec/list_propertysystem.html
+   - SHIORI/3.0（要求と応答の形式）: https://ukatech.shillest.net/ukadoc-spec/spec_shiori3.html 、SAORI/1.0 と SAORI over DirectSSTP（本体内蔵モジュール `internal_*`）: https://ukatech.shillest.net/ukadoc-spec/spec_saori_ex.html
+   - SSTP: https://ukatech.shillest.net/ukadoc-spec/spec_sstp.html
+   - install.txt / .narignore / .updateignore / delete.txt: https://ukatech.shillest.net/ukadoc-spec/descript_install.html
+   - ネットワーク更新: https://ukatech.shillest.net/ukadoc-spec/dev_update.html
    - metainfo（Web アプリ向けのゴースト情報。`.ukagaka/` フォルダ）: https://ukatech.shillest.net/metainfo-standard/ （GitHub: https://github.com/ukatech/metainfo-standard ）
    - YAYA: yaya-docs https://yaya-shiori.github.io/yaya-docs/ （文法、システム関数、ハッシュと入れ子 `grammar/12-hash`・`13-nesting`、正規表現 `grammar/14-regular-expressions`、600 系の変更点）、本体 https://github.com/YAYA-shiori/yaya-shiori 、システム辞書 https://github.com/YAYA-shiori/yaya-dic
    - 里々: satori-docs https://ukatech.shillest.net/satori-docs/ （文法、イベントと動作、内蔵関数、システム変数、ssu と正規表現 `ssu/regex`、エラーメッセージ、里々 2 の紹介 `other/satori2-launch`。`ukatech.github.io/satori-docs/` はここに転送される）、本体 https://github.com/ukatech/satoriya-shiori
@@ -145,7 +150,7 @@ YAYA の関数の戻り値や、里々・華和梨の関数の細かい挙動は
 
 伺かは、作者が手作りしたゴーストを配り合う文化の上に成り立っている。詳しくは `references/ai-guidelines.md`。要点:
 
-- 他のゴーストの台詞、シェル画像、辞書を、コピーしたり言い換えたりして持ち込まない。参考にしてよいのは、公開されている仕様と、このゴースト自身の辞書だけ。
+- 他のゴーストの台詞、シェル画像、辞書を、コピーしたり言い換えたりして持ち込まない。参考にしてよいのは、公開されている仕様と、このゴースト自身の辞書（元にしたテンプレートやサンプルゴーストを含む）だけ。
 - 実在の人物を模したキャラクターを作らない。AI の側から既存のキャラクターを持ち込まない。
 - 生成したトークは、作者が読んで確かめてから公開するものとして書く。数を増やすための大量生成はしない。
 - 頼まれていないのに、ユーザーの PC に影響する処理（`\![open,...]`、`\![execute,...]`、`\-`、外部プログラムの実行、ファイルの書き込み、SAORI の読み込みなど）を書かない。

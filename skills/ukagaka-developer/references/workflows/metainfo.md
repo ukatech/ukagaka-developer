@@ -98,7 +98,7 @@ languages,ja
 | `languages` | 必須 | ゴーストが対応する言語。複数は `,` で区切る |
 | `sakura.name` | `type` が `ghost` のとき必須 | メインキャラクターの名前 |
 | `kero.name` | 任意 | 相方の名前。複数いれば `kero1.name`、`kero2.name` のように区別する |
-| `has_terms` | 任意 | `terms.txt` があれば 1、なければ 0（省略は 0。`terms.txt` は https://ssp.shillest.net/ukadoc/manual/manual_directory.html ） |
+| `has_terms` | 任意 | `terms.txt` があれば 1、なければ 0（省略は 0。`terms.txt` は https://ukatech.shillest.net/ukadoc-spec/manual_directory.html ） |
 | `icon` | 任意 | アイコンのリンク。省略すると、`.ukagaka/icon.png` があればそれ |
 | `uuid_base` | 任意 | UUID の衝突を避けるための追加の文字列 |
 

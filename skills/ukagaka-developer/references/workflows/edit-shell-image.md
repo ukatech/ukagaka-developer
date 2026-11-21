@@ -27,7 +27,7 @@
 4. 透過の扱いを決める。`scripts/image.ps1` の出力はすべて 32bit RGBA PNG なので、SSP にアルファを使わせる設定が要る。
    - シェルの `descript.txt` に `seriko.use_self_alpha,1` が無ければ、足すことを作者に提案する。無いままだと、SSP はアルファを無視して左上の画素の色で抜く（完全に透明な画素は黒く出る）。
    - 足す前に、手順 2 の `info` で**アルファを持つ既存の画像**（`RGBA`、`grayscale+alpha`）を探す。設定を足すとそのアルファが使われるようになるので、左上の色で抜くつもりだった画像（アルファがすべて不透明なものなど）は、`colorkey` で 32bit に直しておく。アルファの無い画像は、設定を足しても今までどおり左上の色で抜かれる。
-   - 左上の色で抜いていた画像を 32bit にするときは `colorkey`、`.pna` を使っていた画像は `pna` の操作でアルファに移す。移したら `.pna` は消す（アルファと `.pna` の両方があると、どちらが使われるか資料に書かれていない）。ネットワーク更新で配布しているゴーストでは、消した `.pna` を `delete.txt` に書くことを提案する（書式は https://ssp.shillest.net/ukadoc/manual/descript_install.html ）。
+   - 左上の色で抜いていた画像を 32bit にするときは `colorkey`、`.pna` を使っていた画像は `pna` の操作でアルファに移す。移したら `.pna` は消す（アルファと `.pna` の両方があると、どちらが使われるか資料に書かれていない）。ネットワーク更新で配布しているゴーストでは、消した `.pna` を `delete.txt` に書くことを提案する（書式は https://ukatech.shillest.net/ukadoc-spec/descript_install.html ）。
 5. シェルのフォルダに書き戻す（`edit ... -Out shell/master/<ファイル名>.png`）。終了コード 2 なら、表示された注意（`seriko.use_self_alpha` が無い、`.pna` が隣にある）に対処する。
    - 画像の大きさや位置を変えたら、`surfaces.txt` の `collision`、`element` と `animation` の座標、`descript.txt` の吹き出しの位置など、座標を使う設定も合わせる。書式は推測で書かずに調べる（`SKILL.md` の「仕様を調べる」）。
 6. 確かめる。

@@ -30,7 +30,7 @@
 5. **`.narignore` と `.updateignore` を整える。**
    - nar にも更新ファイルにも入れないもの: `/site/`（紹介ページ）、`/.ukagaka/`（metainfo。入れてもよい）、`/build/`（開発用ブロックにある）、`updates2.dau`、`updates.txt`（テンプレートの `.narignore` にある）。
    - **バルーンのフォルダは `.updateignore` で除外する**（例: `/<バルーンのフォルダ名>/`）。ゴーストの更新ファイルに入っていると、`build-site.ps1` が止まる。バルーンは自分の更新ファイルを持つ。
-   - `.narignore` と `.updateignore` 自身は配布しない。以前の配布に入っていたなら、`delete.txt` に足して、利用者の手元から消す（`delete.txt` は更新で取得され、書かれたファイルが消される。仕様は https://ssp.shillest.net/ukadoc/manual/dev_update.html ）。
+   - `.narignore` と `.updateignore` 自身は配布しない。以前の配布に入っていたなら、`delete.txt` に足して、利用者の手元から消す（`delete.txt` は更新で取得され、書かれたファイルが消される。仕様は https://ukatech.shillest.net/ukadoc-spec/dev_update.html ）。
    - 確かめる: `scripts/build-site.ps1 -ListOnly`（`only in nar` / `only in update files` に意図しないものが無いか）。
 6. **`.gitignore` に `updates2.dau`、`updates.txt`、`*.nar`、`/build/` を足す**（生成物をコミットしない。旧 homeurl 用に凍結したものは `git add -f`）。
 7. **作者に、リポジトリの設定を頼む。** Settings > Pages > Build and deployment > Source を **GitHub Actions** にする（エージェントが `gh api` で行うときは、先に確認を取る）。
@@ -58,4 +58,4 @@
 - 自動チェックと nar だけのリリース: `references/workflows/ci.md`
 - nar と更新ファイルをローカルで作る（SSP）: `references/workflows/build-nar.md`
 - metainfo（`.ukagaka/`）: `references/workflows/metainfo.md`
-- ネットワーク更新の仕様: https://ssp.shillest.net/ukadoc/manual/dev_update.html
+- ネットワーク更新の仕様: https://ukatech.shillest.net/ukadoc-spec/dev_update.html

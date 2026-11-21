@@ -12,7 +12,7 @@
 
 ## AI がやりがちな失敗（SHIORI に共通のもの）
 
-SHIORI ごとの失敗は、`references/yaya/dictionary.md` と `references/satori/dictionary.md` にある。
+SHIORI ごとの失敗は、`references/yaya/dictionary.md`、`references/satori/dictionary.md`、`references/kawari/dictionary.md` の「やりがちな失敗」にある。
 
 - 1 つの台詞が長すぎる。吹き出しの幅はバルーンによって違うので、全角 20〜25 字くらいを目安に区切る。画像を読めるなら、試験用の SSP で `scripts/sstp.ps1 -Script '...' -Balloon` と再生して、吹き出しの画像で折り返しを自分で確かめる（`references/workflows/try-in-ssp.md`）。表情やテンポは作者の画面で確かめてもらう。
 - 存在しないサーフェス番号を使う。表情を増やすにはシェルの画像が必要になる。サーフェス番号は `GHOST.md` の表にあるものだけを使う。表の説明だけでは台詞に合う表情を選びにくいときは、画像を読めるなら `scripts/dump-surface.ps1 -Surface 0-7 -Backlog -Sheet` で顔を並べて見比べる（出力は一時フォルダに置き、ゴーストのフォルダには置かない）。

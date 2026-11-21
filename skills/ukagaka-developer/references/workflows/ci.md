@@ -8,7 +8,7 @@
 
 1. `actions/checkout`（YAYA のシステム辞書は submodule なので `submodules: recursive`）。
 2. `git clone --depth 1 https://github.com/ukatech/ukagaka-developer.git $RUNNER_TEMP/ukagaka-developer`。
-3. 華和梨のゴースト（`ghost/master/kawarirc.kis` がある）なら、`scripts/setup.ps1 -Tool kosui` で kosui.exe を取る（ほかの SHIORI では何もしない）。
+3. 華和梨のゴースト（`ghost/master/kawarirc.kis` か、Phase 7 の `kawari.ini` がある）なら、`scripts/setup.ps1 -Tool kosui` で kosui.exe を取る（ほかの SHIORI では何もしない）。
 4. `scripts/check-dic.ps1 -Ci -GhostRoot $GITHUB_WORKSPACE`。`-Ci` で、エラーが GitHub Actions の注釈（アノテーション）になる。
 
 - 里々（satori.dll Mc206-1 以降）の静的検査 ShioriLint を CI でも行うなら、`scripts/lint.ps1 -Ci -GhostRoot $GITHUB_WORKSPACE` の手順を足す（error は注釈になり、終了コード 1。warning も失敗にするなら `-Strict`）。テンプレートには入れていない: 既存のゴーストが、辞書の error で急に失敗するため。華和梨の静的検査も同じ `scripts/lint.ps1 -Ci`（指摘は warning の注釈。失敗にするなら `-Strict`）。
@@ -48,12 +48,12 @@
 ```
 
 - GitHub Actions（`GITHUB_ACTIONS=true`）では、SSP が無いので、`build-nar.ps1` は自分で nar を作る（git が追跡しているファイルだけ。ネットワーク更新ファイル `updates2.dau` は作れない）。ubuntu のランナーでも動く（`pwsh`）。
-- 開発用のファイル（`GHOST.md`、`AGENTS.md`、`.claude/` など）と、リポジトリ用のファイル（`.github/`、`.gitignore`、`.editorconfig` など）は、`.narignore` の開発用ブロックが除外する。ブロックが無ければ `scripts/init-ghost.ps1 -NarignoreDevBlock`。
+- 開発用のファイルとリポジトリ用のファイルは、`.narignore` の開発用ブロックが除外する（`references/workflows/build-nar.md`）。ブロックが無ければ `scripts/init-ghost.ps1 -NarignoreDevBlock`。
 - 旧キットの「キットあり版の nar」（`auto_release_devkit.yaml`）は、スキルに移したら要らない。消す。
 
 ## metainfo
 
-ゴーストを GitHub で公開しているのに、デフォルトブランチのルートに `.ukagaka/`（Web アプリ向けの metainfo）が無いときは、Actions を設定するついでに、付けることを一言勧める（リポジトリに Topics の `ukagaka`、`ukagaka-ghost`、`sirefaso`、`sosiremi` を付けることも。バルーンなら `ukagaka-balloon`）。断られたら、それ以上は勧めない。作り方は `references/workflows/metainfo.md`。
+デフォルトブランチのルートに `.ukagaka/`（Web アプリ向けの metainfo）が無ければ、Actions を設定するついでに、`SKILL.md` の「ゴーストを公開するとき」のとおり一言勧める（リポジトリの Topics も含めて、`references/workflows/metainfo.md`）。
 
 ## Pages で配る
 

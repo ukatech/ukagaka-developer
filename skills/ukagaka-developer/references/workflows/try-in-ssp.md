@@ -6,7 +6,7 @@
 
 何を試すか（YAYA の関数名、里々のトークの名前、華和梨のエントリ名、イベント名、さくらスクリプトそのもの）が会話から分からなければ、作者に聞く。
 
-前提: `scripts/run-ssp.ps1` が立てた試験用 SSP で、このフォルダのゴーストが動いていること。さくらスクリプトやイベントを試すときは、どんなに小さな確認でも、**まず手順 0 で試験用 SSP を立ててから送る**。試験用 SSP が動いていないと、`scripts/sstp.ps1` は作者がふだん使っている SSP（9801）に送ってしまう。作者の SSP には、作者に頼まれたとき（`-Shared`）以外は送らず、そこにいるほかのゴーストにも送らない（`-AnyGhost` は、今いちばん前にいる、作者のほかのゴーストに届くことがある）。
+前提: `scripts/run-ssp.ps1` が立てた試験用 SSP で、このフォルダのゴーストが動いていること。さくらスクリプトやイベントを試すときは、どんなに小さな確認でも、**まず手順 0 で試験用 SSP を立ててから送る**。立てていないと、`scripts/sstp.ps1` は作者がふだん使っている SSP（9801）に送ってしまう。作者の SSP には、作者に頼まれたとき（`-Shared`）以外は送らない。`-AnyGhost` も使わない（今いちばん前にいる、作者のほかのゴーストに届くことがある）。
 
 関数やトークが返すスクリプトや実行時のエラーだけを見るなら、SSP は要らない。`powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shiori.ps1 -Eval '関数名'`（里々は `-Eval '（トークの名前）'`。イベントなら `-Event OnMouseDoubleClick -Reference '0,0,0,0,Head'`、里々のランダムトークは `-Event OnTalk`）で、tamacs.exe がその場で辞書を読み込んで答える（使い方は `references/yaya/commands.md` と `references/satori/commands.md`）。SSP では、表示、表情、掛け合いのテンポ、SSP が解釈できないタグを確かめる。
 
@@ -52,5 +52,5 @@
 
 ## 関連
 
-- トークの書き方: `references/yaya/dictionary.md` か `references/satori/dictionary.md` の「トークの書き方」と、`GHOST.md` の「トークの書き方」
+- トークの書き方: SHIORI の `dictionary.md`（`references/yaya/`、`references/satori/`、`references/kawari/`）の「トーク（さくらスクリプト）の書き方」と、`GHOST.md` の「トークの書き方」
 - 辞書・シェルのチェック: `references/workflows/check.md`
