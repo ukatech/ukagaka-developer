@@ -176,13 +176,21 @@ function Get-DevkitSspGhost([string]$GhostRoot, [string]$SakuraName, [int]$Port 
 }
 
 # Reads the state of the running ghost with "EXECUTE GetStatus". States are the same as the
-# SHIORI/3.0 Status header, for example talking, choosing, online, opening(input) or balloon(0=0).
+# SHIORI/3.0 Status header, for example talking, choosing, online, opening(input) or balloon(0=0). EXECUTE GetStatus of
+# SSP 2.9.39 and later adds one more, scriptbusy (a script is queued or playing), which the Status header does not have.
 # Returns an object whose States is the list (empty when no state applies), or $null when SSP did not answer 200:
 # SSP is not running, or the ghost is being loaded (SSP answers 400 meanwhile).
 function Get-DevkitSspStatus([int]$Port = 9801) {
     $response = Invoke-DevkitSstp -Lines @('EXECUTE SSTP/1.1', 'Charset: UTF-8', 'Sender: ukagaka-developer', 'Command: GetStatus') -Port $Port -TimeoutSeconds 5
     if ($response.Status -ne 200) { return $null }
     return [pscustomobject]@{ States = @($response.Data.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }) }
+}
+
+# True while the ghost has a script to play: "talking", or "scriptbusy" (a script is queued or playing; reported by
+# EXECUTE GetStatus of SSP 2.9.39 and later). "talking" can drop for a moment between queued scripts and before the
+# first one starts; "scriptbusy" does not. An older SSP never reports scriptbusy, so there this is the same as "talking".
+function Test-DevkitSspBusy([object]$Status) {
+    return (($Status.States -contains 'talking') -or ($Status.States -contains 'scriptbusy'))
 }
 
 # Waits until the ghost has finished talking, with GetStatus. SSP answers SEND and NOTIFY before it plays the
@@ -200,7 +208,7 @@ function Wait-DevkitSspTalkEnd([double]$StartSeconds = 1, [int]$TimeoutSeconds =
             return 'nostatus'
         }
         $elapsed = ((Get-Date) - $start).TotalSeconds
-        if ($status.States -contains 'talking') {
+        if (Test-DevkitSspBusy $status) {
             $talked = $true
         } elseif ($talked -or $elapsed -ge $StartSeconds) {
             return 'done'
@@ -223,7 +231,7 @@ function Wait-DevkitSspReload([double]$GraceSeconds = 2, [int]$TimeoutSeconds = 
         $status = Get-DevkitSspStatus $Port
         if ($null -eq $status) {
             $reloading = $true
-        } elseif ($status.States -contains 'talking') {
+        } elseif (Test-DevkitSspBusy $status) {
             $graceStart = Get-Date
         } elseif ($reloading -or ((Get-Date) - $graceStart).TotalSeconds -ge $GraceSeconds) {
             break
