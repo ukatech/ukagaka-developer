@@ -22,6 +22,7 @@
   - 起動した SSP のポート、PID、プロセスの開始時刻、ゴーストのフォルダを、一時フォルダの `ukagaka-developer/ssp-<ゴーストのルートのフォルダのハッシュ>.json` に記録する（`Save-DevkitSspSession`）。ゴーストのフォルダに置かないのは、nar や git の除外を増やさないため。PID が生きていて開始時刻も同じときだけ有効とし（PID の再利用対策）、それ以外は消す。
   - `scripts/sstp.ps1` と `scripts/ssp-log.ps1` の `-Port` の既定値は 0 で、`Resolve-DevkitSspPort` が、記録が有効ならそのポート、無ければ 9801 にする。
   - `-Stop` は Owned SSTP で `\-` を送ってゴーストを閉じ（`OnClose` が動き、YAYA が変数を保存する）、閉じなければプロセスを止める。ゴーストが 1 体なら SSP も終わる（2.8.97 で確認）。
+  - `-SspArgs <string[]>` は ssp.exe への追加の起動引数で、`--ghost <フォルダ>` の後ろへ連結する。`-File` で渡したカンマ区切り（`a,b`）は 1 つの文字列になるので（`-BalloonScope` と同じ）、引用符の外のカンマで分ける（`"--hide=a,b"` は分けない）。空白を含む要素は引用符で囲む。作者の SSP（`-Shared`）へは渡さず、1 で終わる。すでに動いている隔離 SSP には効かないので、そのことを表示する。作者の SSP と引数が食い違わないよう、試験用ハーネス（`tools/_lib/ssplib.ps1` の `Start-SspIsolated -SspArgs`）も、自前で ssp.exe を起動せずこれを呼ぶ。
   - readonly は二重起動のチェックに関わらないので、記録が有効な間は新しく立てず、そのことを表示して終わる。別のフォルダ（`-Root`）の記録が有効なら、先に `-Stop` するよう促して 1 で終わる。
 - nar と更新定義ファイルの作成（`scripts/build-nar.ps1`）:
   - `ssp.exe --offline-tool <nar|updatedata> --target-dir <ゴーストのルート> --output <出力先>` で、1 回に 1 つのファイルを作る。ゴーストを起動せず、ウィンドウも作らずに終わるので、試験用 SSP も SSTP も使わない。SSP が動いていても作れる（2.9.01 で、`scripts/run-ssp.ps1` の試験用 SSP を動かしたまま確認）。`\![execute,createnar]` / `\![execute,createupdatedata]` と同じ処理で、出力先は既存のファイルを上書きし、ゴーストのフォルダ内ならそのファイル自身は収録しない。出力先のフォルダはあらかじめ作っておく必要がある。

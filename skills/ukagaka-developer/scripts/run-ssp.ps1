@@ -9,6 +9,7 @@
     first free one from 9822 to 10999 (or -Port), and it is recorded under the temporary folder, so that
     scripts/sstp.ps1 and scripts/ssp-log.ps1 send to this SSP while it runs. When it is already running, it is
     left as it is (reload the ghost with "scripts/sstp.ps1 -Reload ghost"). -Stop closes it.
+    -SspArgs appends extra ssp.exe arguments (such as --time-shift=+3600) to the isolated SSP's command line.
     With -Shared, the ghost is handed to the author's SSP instead (port 9801).
     Readiness is checked with "EXECUTE GetName", which must return sakura.name of ghost/master/descript.txt.
     Then the entries that SSP added to its error log while starting are shown (SSP with developer.log
@@ -34,7 +35,10 @@ param(
     [switch]$Shared,
     # Close the isolated SSP started by this script.
     [switch]$Stop,
-    [int]$TimeoutSeconds = 90
+    [int]$TimeoutSeconds = 90,
+    # Extra ssp.exe arguments for the isolated SSP, appended after "--ghost <folder>" (for example "--time-shift=+3600").
+    # Give several as one comma-separated list. An element with a space is quoted here. Not used with -Shared.
+    [string[]]$SspArgs = @()
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/common.ps1')
@@ -76,6 +80,14 @@ if (-not $ssp) {
     exit 3
 }
 $isolated = -not $Shared
+# "-File" passes "a,b" as one string, so split at the commas outside double quotes ("--hide=a,b" stays whole).
+$extraArguments = @($SspArgs | ForEach-Object { $_ -split ',(?=(?:[^"]*"[^"]*")*[^"]*$)' } | ForEach-Object { $_.Trim() } | Where-Object { $_ } | ForEach-Object {
+    if ($_ -match '\s' -and $_ -notmatch '^".*"$') { '"' + $_ + '"' } else { $_ }
+})
+if ($extraArguments.Count -gt 0 -and -not $isolated) {
+    Write-Host 'run-ssp: -SspArgs is for the isolated SSP; it is not passed to the author''s SSP (-Shared)'
+    exit 1
+}
 
 $process = $null
 if ($isolated) {
@@ -87,6 +99,7 @@ if ($isolated) {
             exit 1
         }
         Write-Host "run-ssp: the isolated SSP is already running (SSTP port $($session.port), process $($session.pid))"
+        if ($extraArguments.Count -gt 0) { Write-Host 'run-ssp: -SspArgs was not applied, because the SSP was started before. Close it with -Stop and start it again' }
         Write-Host 'run-ssp: to load your changes, run scripts/sstp.ps1 -Reload ghost. To close it, run scripts/run-ssp.ps1 -Stop'
         exit 0
     }
@@ -102,10 +115,11 @@ if ($isolated) {
     }
     # A new SSP: every entry of its error log comes from this start.
     $marker = [pscustomobject]@{ Kind = 'error'; Name = $null; Total = 0; Key = '' }
-    $arguments = @('--option', 'readonly', '--sstp-listen', [string]$Port, '--ghost', ('"' + $Root + '"'))
+    $arguments = @('--option', 'readonly', '--sstp-listen', [string]$Port, '--ghost', ('"' + $Root + '"')) + $extraArguments
     $process = Start-Process -FilePath $ssp.Path -ArgumentList $arguments -PassThru
     Save-DevkitSspSession -Process $process -Port $Port -Root $Root -SspPath $ssp.Path
-    Write-Host "run-ssp: started an isolated SSP (readonly, SSTP port $Port): $($ssp.Path) --ghost $Root"
+    $extraText = if ($extraArguments.Count -gt 0) { ' ' + ($extraArguments -join ' ') } else { '' }
+    Write-Host "run-ssp: started an isolated SSP (readonly, SSTP port $Port): $($ssp.Path) --ghost $Root$extraText"
 } else {
     if ($Port -le 0) { $Port = $DevkitSspDefaultPort }
     # When SSP is already running, only the error log entries added from now on are of interest.
